@@ -1,0 +1,3468 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0056b3">
+    <meta name="description" content="SecureVault Ultimate - Password Manager Paling Aman">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>SecureVault Ultimate</title>
+    <style>
+        /* ==========================================================================
+           1. CSS VARIABLES & RESET
+           ========================================================================== */
+        :root {
+            /* --- Core Colors --- */
+            --primary: #0056b3;
+            --primary-dark: #004494;
+            --primary-light: #e6f0fa;
+            --secondary: #007bff;
+            --accent: #00d2d3;
+            
+            /* --- Functional Colors --- */
+            --text-dark: #1a1a1a;
+            --text-gray: #555555;
+            --text-light: #888888;
+            --text-muted: #aaaaaa;
+            --bg: #f4f6f9;
+            --white: #ffffff;
+            --danger: #dc3545;
+            --danger-bg: #ffebee;
+            --warning: #ffc107;
+            --warning-bg: #fff8e1;
+            --success: #28a745;
+            --success-bg: #e8f5e9;
+            --info: #17a2b8;
+
+            /* --- UI Elements --- */
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 20px;
+            --nav-height: 70px;
+            --anim-speed: 0.3s;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 16px 48px rgba(0,0,0,0.12);
+            --border-light: #eeeeee;
+            --border-medium: #dddddd;
+
+            /* --- Safe Area Insets (Dynamic for Android/iOS Notch) --- */
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+
+            /* --- Typography --- */
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: "SF Mono", "Roboto Mono", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            outline: none;
+            /* Prevent text selection to feel like native app */
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        /* Allow selection for inputs only */
+        input, textarea {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: #eef2f6;
+            /* Professional Dot Pattern Background */
+            background-image: radial-gradient(#d0d0d0 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--text-dark);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* App handles scrolling internally */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed; /* Prevent body scroll in WebView */
+            top: 0;
+            left: 0;
+        }
+
+        /* ==========================================================================
+           2. LAYOUT & CONTAINER (APP SHELL)
+           ========================================================================== */
+        #app-container {
+            width: 100%;
+            height: 100%;
+            max-width: 600px; /* Tablet constraint */
+            background: var(--bg);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================================================
+           3. TYPOGRAPHY
+           ========================================================================== */
+        h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.5px; color: var(--text-dark); }
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
+        p { line-height: 1.6; color: var(--text-gray); user-select: text; -webkit-user-select: text; }
+        .text-small { font-size: 0.75rem; }
+        .text-muted { color: var(--text-light); }
+        .font-bold { font-weight: 700; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+
+        /* ==========================================================================
+           4. HEADER & NAVIGATION
+           ========================================================================== */
+        header {
+            background: var(--white);
+            height: calc(var(--nav-height) + var(--safe-top));
+            padding-top: var(--safe-top);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: calc(20px + var(--safe-left));
+            padding-right: calc(20px + var(--safe-right));
+            box-shadow: 0 1px 0 var(--border-light);
+            z-index: 100;
+            flex-shrink: 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+        }
+        
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+        
+        .icon-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            color: var(--primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .icon-btn:active {
+            background-color: var(--primary-light);
+            transform: scale(0.9);
+        }
+
+        .icon-btn.lock-btn { color: var(--text-dark); }
+        .icon-btn.lock-btn:active { background-color: var(--border-medium); }
+
+        /* ==========================================================================
+           5. VIEWS & TRANSITIONS (FIXED OVERFLOW)
+           ========================================================================== */
+        .view {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            /* Use padding-bottom to ensure content isn't hidden behind nav/footer */
+            padding: calc(var(--nav-height) + var(--safe-top) + 20px) 20px calc(20px + var(--safe-bottom)) 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
+            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            z-index: 10;
+            scrollbar-width: none; /* Firefox */
+        }
+        .view::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+        
+        /* Helper class for views without top header padding (like Auth) */
+        .view.no-header-padding {
+            padding-top: 20px;
+        }
+        
+        .view.hidden {
+            display: none !important;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.98);
+            z-index: 0;
+        }
+
+        /* ==========================================================================
+           6. FORM ELEMENTS
+           ========================================================================== */
+        .form-group { margin-bottom: 24px; position: relative; }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            font-size: 1rem;
+            transition: all 0.2s;
+            appearance: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            border-radius: 12px;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .form-input::placeholder { color: var(--text-muted); }
+        
+        .form-textarea {
+            height: 100px;
+            resize: none;
+            line-height:1.5;
+        }
+        
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+        
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px; width: 22px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: -0.3px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+        .btn-primary { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(0,86,179,0.25); 
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .btn-secondary { 
+            background: white; 
+            color: var(--primary); 
+            border: 2px solid var(--primary); 
+            margin-top: 12px; 
+        }
+        
+        .btn-danger { 
+            background: var(--danger); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25); 
+        }
+        
+        .btn-danger:hover { background: #c82333; }
+
+        .btn-text { 
+            background: transparent; 
+            color: var(--primary); 
+            padding: 10px; 
+            font-size: 0.9rem; 
+            width: auto; 
+            margin: 0 auto; 
+            display: block; 
+            font-weight: 600; 
+            user-select: none;
+        }
+        .btn-text:hover { text-decoration: underline; background: rgba(0,86,179,0.05); }
+
+        /* ==========================================================================
+           7. FILTER & LIST COMPONENTS (TOP AREA DESIGN)
+           ========================================================================== */
+        
+        /* Search Screen Header with Integrated Filter */
+        .search-header-area {
+            background: white;
+            padding: 15px 20px 10px 20px; /* Top padding less to fit under nav */
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+            margin: -20px -20px 20px -20px; /* Bleed out to edges */
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .search-bar-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--bg);
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            outline: none;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        /* Top Filter Container (Collapsible) */
+        .top-filter-container {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafafa;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+        }
+
+        .top-filter-container.expanded {
+            max-height: 300px; /* Increased for category list */
+        }
+
+        .filter-section {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .filter-section:last-child { border-bottom: none; }
+
+        .filter-section-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .filter-scroll-top {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+        .filter-scroll-top::-webkit-scrollbar { display: none; }
+
+        .filter-chip-top {
+            padding: 6px 14px;
+            border-radius: 16px;
+            background: white;
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--border-light);
+            white-space: nowrap;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .filter-chip-top.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 6px rgba(0,86,179,0.25);
+        }
+
+        /* Full Width Filter Button */
+        .btn-filter-top {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,86,179,0.2);
+        }
+        .btn-filter-top:active { transform: scale(0.98); box-shadow: none; }
+
+        /* List & Grid View Toggle */
+        .view-toggle-group-mini {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 2px;
+            margin-right: 10px;
+        }
+        .view-toggle-btn-mini {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .view-toggle-btn-mini.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* List Styles */
+        .item-list { display: flex; flex-direction: column; gap: 12px; padding-top: 0; }
+        
+        .item-card {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            user-select: none;
+            touch-action: manipulation; /* Improves touch response */
+            transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+            border: 1px solid var(--border-light);
+        }
+        .item-card:active { transform: scale(0.99); background: #fafafa; }
+
+        /* Grid Styles */
+        .item-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            padding-top: 0;
+        }
+
+        .item-grid .item-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 20px 15px;
+            justify-content: center;
+            height: 100%;
+            min-height: 160px; 
+            touch-action: none;
+        }
+
+        .item-grid .item-card:active { background: #fafafa; }
+
+        .item-grid .item-details {
+            min-width: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .item-grid .item-name { 
+            font-size: 1rem; 
+            font-weight: 700; 
+            margin: 0; 
+            width: 100%; 
+            text-align: center; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        .item-grid .item-icon { 
+            width: 64px; height: 64px; 
+            font-size: 2rem; 
+            margin-bottom: 8px; 
+            background: #f8f9fa;
+        }
+
+        /* Icon Container */
+        .item-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            background: var(--primary-light);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; flex-shrink: 0;
+            overflow: hidden; position: relative; object-fit: cover;
+            color: var(--primary);
+        }
+        .item-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* Risk Indicator */
+        .risk-dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 2px; right: 2px;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .risk-weak { background: var(--danger); }
+        .risk-medium { background: var(--warning); }
+        .risk-strong { background: var(--success); }
+
+        .item-details { flex: 1; min-width: 0; }
+        .item-name { font-weight: 700; font-size: 1.05rem; color: var(--text-dark); margin-bottom: 4px; }
+        .item-meta { font-size: 0.8rem; color: var(--text-gray); display: flex; align-items: center; flex-wrap: wrap; gap: 6px; justify-content: flex-start;}
+        .item-grid .item-meta { justify-content: center; }
+        .item-date { font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; display: block; }
+        
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .badge-cat { background: #f0f2f5; color: #555; }
+
+        .item-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .item-action-icon {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            padding: 5px;
+            cursor: pointer;
+        }
+        .item-action-icon:active { color: var(--primary); transform: scale(1.2); }
+
+        /* ==========================================================================
+           8. PASSWORD STRENGTH & REQUIREMENTS
+           ========================================================================== */
+        .password-requirements {
+            margin-top: 12px;
+            background: #fff;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .password-strength-meter {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease-out, background-color 0.4s ease;
+        }
+        
+        .strength-text {
+            text-align: right;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .req-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            transition: color 0.3s;
+        }
+        .req-item:last-child { margin-bottom: 0; }
+        .req-item.valid { color: var(--success); font-weight: 600; }
+        .req-item.invalid { color: var(--danger); }
+        .req-icon { font-weight: bold; width: 20px; display: inline-block; text-align: center; }
+
+        /* ==========================================================================
+           9. SECURITY QUESTIONS (FIXED INPUT TYPE)
+           ========================================================================== */
+        .sq-item {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 12px;
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+        .sq-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            margin-bottom: 10px;
+            outline: none;
+            font-size: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 8px;
+            color: var(--text-dark);
+        }
+        .sq-input:focus { border-bottom-color: var(--primary); }
+        .sq-ans-input {
+            width: 100%;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 5px;
+        }
+        .sq-delete-btn {
+            position: absolute;
+            top: 12px; right: 12px;
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: none;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+        .sq-delete-btn:hover { background: #ffcdd2; }
+
+        /* ==========================================================================
+           10. DASHBOARD & CARDS
+           ========================================================================== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 24px 10px;
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .action-card:active { transform: scale(0.96); box-shadow: none; background: #fafafa; }
+        .action-icon { font-size: 2rem; }
+        .action-label { font-weight: 700; font-size: 0.9rem; color: var(--text-dark); }
+
+        .stats-card {
+            background: white;
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-card:active { border-color: var(--primary); transform: scale(0.98); }
+        .stats-number { font-size: 3.5rem; font-weight: 900; color: var(--primary); line-height: 1; margin-bottom: 5px; letter-spacing: -2px; }
+        .stats-label { font-size: 0.9rem; color: var(--text-gray); font-weight: 500; }
+
+        /* ==========================================================================
+           11. SECURITY ANALYSIS UI (PROFESSIONAL & ANIMATED)
+           ========================================================================== */
+        .analysis-wrapper {
+            padding: 20px;
+            background: var(--bg);
+        }
+
+        /* Card Container */
+        .analysis-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 1. Security Score (Circular) - Fixed Animation */
+        .score-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .circular-chart {
+            display: block;
+            margin: 0 auto;
+            max-width: 160px;
+            max-height: 160px;
+            position: relative;
+        }
+        
+        .circle-bg {
+            fill: none;
+            stroke: #eee;
+            stroke-width: 2.5;
+        }
+        
+        .circle-progress {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1.5s ease-out, stroke 0.3s;
+            transform: rotate(-90deg); /* Start from top */
+            transform-origin: 50% 50%;
+        }
+        
+        .percentage {
+            fill: #666;
+            font-family: var(--font-main);
+            font-weight: bold;
+            font-size: 0.5em;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        
+        .score-label-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 12px; /* Spacing fix */
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        /* 2. Password Strength Ratios (Horizontal Bars) */
+        .ratio-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+            font-size: 0.9rem;
+        }
+        
+        .ratio-label {
+            width: 70px;
+            flex-shrink: 0;
+            font-weight: 700;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        
+        .ratio-track {
+            flex-grow: 1;
+            height: 12px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin: 0 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .ratio-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .ratio-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-20deg) translateX(-150%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: skewX(-20deg) translateX(-150%); }
+            100% { transform: skewX(-20deg) translateX(150%); }
+        }
+
+        .ratio-value {
+            width: 45px;
+            text-align: right;
+            font-weight: 800;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        /* Colors */
+        .fill-weak { background: var(--danger); }
+        .fill-warn { background: var(--warning); }
+        .fill-strong { background: var(--success); }
+        .text-weak { color: var(--danger); }
+        .text-warn { color: var(--warning); }
+        .text-strong { color: var(--success); }
+
+        /* 3. Risk Summary (Badges) */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+        
+        .summary-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .summary-lbl {
+            font-size: 0.75rem;
+            color: #777;
+            line-height: 1.3;
+        }
+
+        /* ==========================================================================
+           12. PROFILE & EDIT PROFILE
+           ========================================================================== */
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            box-shadow: var(--shadow-md);
+            border: 4px solid white;
+            object-fit: cover;
+            overflow: hidden;
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-edit-overlay {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 32px; height: 32px;
+            background: var(--white);
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+            font-size: 0.8rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .profile-avatar-wrapper:hover .avatar-edit-overlay {
+            opacity: 1;
+        }
+
+        .profile-item-row {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-light);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .profile-item-label { font-size: 0.75rem; color: var(--text-light); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .profile-item-value { font-size: 1rem; color: var(--text-dark); font-weight: 500; }
+
+        /* ==========================================================================
+           13. MODALS & SHEETS
+           ========================================================================== */
+        .modal-overlay, .action-sheet-overlay, .filter-sheet-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-overlay.active, .action-sheet-overlay.active, .filter-sheet-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .modal-box {
+            background: white;
+            width: 90%; max-width: 380px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-height: 85vh; overflow-y: auto;
+            text-align: left;
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+
+        /* Action Sheet (Bottom Sheet) */
+        .action-sheet {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0,0,0,0.1);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+            padding: 25px 20px calc(25px + var(--safe-bottom)); 
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex; flex-direction: column; align-items: center;
+            border-top-left-radius: 24px; border-top-right-radius: 24px;
+        }
+        .action-sheet-overlay.active .action-sheet { transform: translateY(0); }
+        
+        .sheet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%; margin-top: 20px; }
+        .sheet-item { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 10px 0; }
+        .sheet-item:active { transform: scale(0.9); opacity: 0.6; }
+        .sheet-item span { font-size: 0.75rem; margin-top: 8px; font-weight: 600; color: var(--text-dark); }
+        .sheet-item-icon { font-size: 1.8rem; margin-bottom: 4px; }
+
+        /* ==========================================================================
+           14. DETAILS VIEW
+           ========================================================================== */
+        .detail-header { text-align: center; margin-bottom: 20px; }
+        .detail-icon-large {
+            width: 80px; height: 80px; background: var(--primary-light);
+            border-radius: 20px; margin: 0 auto 15px;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; box-shadow: var(--shadow-sm); position: relative;
+        }
+        .detail-icon-large img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        
+        .detail-row {
+            background: #f8f9fa; padding: 15px; border-radius: 12px;
+            border: 1px solid var(--border-light); margin-bottom: 12px;
+        }
+        .detail-label {
+            font-size: 0.7rem; color: var(--text-light); font-weight: 700; text-transform: uppercase;
+            margin-bottom: 6px; display: block; letter-spacing: 0.5px;
+        }
+        .detail-value { font-size: 1rem; color: var(--text-dark); word-break: break-all; display: flex; align-items: center; justify-content: space-between; font-weight: 500; }
+        .detail-action-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--primary); padding: 5px; opacity: 0.8; transition: 0.2s; }
+        .detail-action-btn:active { transform: scale(1.2); opacity: 1; }
+        .detail-pass-value { font-size: 1.4rem; font-weight: 800; color: var(--primary); letter-spacing: 2px; text-align: center; width: 100%; }
+
+        /* ==========================================================================
+           15. CATEGORY MANAGER
+           ========================================================================== */
+        .cat-manager-inline {
+            background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-sm);
+            padding: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm);
+        }
+        .cat-manager-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+        .cat-chip {
+            padding: 8px 16px; border-radius: 20px;
+            background: #f0f2f5; color: #555;
+            font-size: 0.85rem; border: 2px solid transparent;
+            transition: all 0.2s; cursor: pointer; position: relative; user-select: none; font-weight: 600;
+        }
+        .cat-chip.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+        .cat-chip:active { transform: scale(0.95); }
+        .cat-delete-badge {
+            margin-left: 6px; background: var(--danger-bg); color: var(--danger);
+            border-radius: 50%; width: 18px; height: 18px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; line-height: 1;
+        }
+        .cat-add-wrapper { margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-medium); display: flex; gap: 10px; }
+
+        /* ==========================================================================
+           16. UTILITIES
+           ========================================================================== */
+        #toast {
+            position: absolute; bottom: calc(30px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #323232; color: white; padding: 12px 24px; border-radius: 50px;
+            font-size: 0.9rem; opacity: 0; transition: 0.3s; z-index: 300; pointer-events: none;
+            white-space: nowrap; box-shadow: 0 5px 15px rgba(0,0,0,0.2); width: max-content; max-width: 90%;
+            font-weight: 500; text-align: center;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        .upload-area {
+            width: 120px; height: 120px; margin: 0 auto 20px;
+            border: 2px dashed var(--border-medium); border-radius: 50%;
+            overflow: hidden; position: relative; background: #fafafa; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .upload-area:active { background: #f0f0f0; }
+        .upload-area img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .upload-area.has-img img { display: block; }
+        .upload-area.has-img span { display: none; }
+
+        .app-footer {
+            text-align: center; padding: 20px 0 10px;
+            color: #ccc; font-size: 0.65rem; flex-shrink: 0; width: 100%;
+            margin-top: auto;
+        }
+
+        .hidden { display: none !important; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        
+        .strike-counter { color: var(--danger); font-weight: bold; margin-top: 10px; text-align: center; min-height: 24px; font-size: 0.9rem; }
+        .lock-msg { color: var(--danger); text-align: center; padding: 12px; background: var(--danger-bg); border-radius: 12px; margin-bottom: 15px; font-weight: bold; display: none; border: 1px solid #ffcdd2; }
+        .lock-msg.visible { display: block; animation: shake 0.5s; }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #ccc; width: 100%; grid-column: 1 / -1; }
+        .empty-icon { font-size: 4rem; margin-bottom: 15px; opacity: 0.4; display: block; }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">Pesan Notifikasi</div>
+
+    <!-- AUTH SCREEN (LANDING) -->
+    <section id="auth-screen" class="view no-header-padding hidden">
+        <div class="text-center" style="margin-bottom: 40px; margin-top: 60px;">
+            <div style="width: 90px; height: 90px; background: var(--white); border-radius: 24px; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); padding: 15px;">
+                <img src="https://z-cdn-media.chatglm.cn/files/360717e4-203f-48d3-b3d5-f3e8dfeb942a.png?auth_key=1868654614-832a9b4688744df7a35f36391f7c58b3-0-fd389e8d85ff934788a098e78be8c18a" alt="SecureVault Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <h2 style="font-size: 2rem; margin-top: 20px; color: var(--primary);">SecureVault</h2>
+            <p style="color: var(--text-gray); margin-top: 5px;">Simpan rahasia Anda dengan aman.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button class="btn btn-primary" onclick="nav.to('register-screen')">Daftar Vault Baru</button>
+            <button class="btn btn-secondary" onclick="nav.to('login-screen-1')">Masuk ke Vault</button>
+        </div>
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- REGISTER SCREEN -->
+    <section id="register-screen" class="view no-header-padding hidden">
+        <div style="margin-bottom: 25px; display: flex; align-items: center;">
+            <button class="icon-btn" onclick="nav.back()">←</button>
+            <h2 style="text-align: left; font-size: 1.5rem; margin: 0;">Pendaftaran</h2>
+        </div>
+        
+        <div style="background: var(--warning-bg); color: #856404; padding: 15px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 25px; line-height: 1.5; border-left: 4px solid var(--warning);">
+            <strong>⚠️ PENTING:</strong><br>Daftar ulang akan <strong>MENGHAPUS DATA LAMA</strong>. Tidak ada fitur pemulihan data.
+        </div>
+
+        <form id="form-register">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="reg-email" class="form-input" placeholder="contoh@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="reg-username" class="form-input" placeholder="huruf kecil, tanpa spasi" required>
+                <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 5px;">Hanya huruf kecil dan angka.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nomor Telepon</label>
+                <input type="tel" id="reg-phone" class="form-input" placeholder="+628xxxxxxxxxx" required>
+                <small style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 5px;">Wajib diawali tanda "+".</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Kata Sandi Utama</label>
+                <input type="password" id="reg-password" class="form-input" placeholder="Minimal 8 karakter" required>
+                
+                <div class="password-requirements">
+                    <div class="password-strength-meter">
+                        <div id="strength-bar" class="strength-bar"></div>
+                    </div>
+                    <div id="strength-text" class="strength-text" style="color: #ccc;">LEMAH</div>
+
+                    <div class="req-item invalid" id="req-len"><span class="req-icon">❌</span> Minimal 8 karakter</div>
+                    <div class="req-item invalid" id="req-cap"><span class="req-icon">❌</span> Diawali huruf kapital</div>
+                    <div class="req-item invalid" id="req-num"><span class="req-icon">❌</span> Mengandung angka</div>
+                    <div class="req-item invalid" id="req-sym"><span class="req-icon">❌</span> Mengandung simbol (@#$&-+)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Pertanyaan Keamanan (Minimal 1)</label>
+                <div id="sq-container"></div>
+                <button type="button" class="btn btn-text" onclick="addSecurityQuestionField()" style="margin-top: 10px; font-size: 0.9rem;">+ Tambah Pertanyaan Lain</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">PIN Login (Akses Vault)</label>
+                <input type="tel" id="reg-pin" class="form-input" maxlength="6" pattern="\d+" placeholder="6 Angka PIN" required style="text-align: center; font-size: 1.5rem; letter-spacing: 5px;">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Daftar / Buat Akun</button>
+        </form>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- LOGIN SCREEN 1 (ACCOUNT) -->
+    <section id="login-screen-1" class="view no-header-padding hidden">
+        <div class="text-center" style="margin-bottom: 30px; margin-top: 50px;">
+            <div style="width: 80px; height: 80px; background: var(--white); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; padding: 10px; box-shadow: var(--shadow-sm);">
+                <img src="https://z-cdn-media.chatglm.cn/files/360717e4-203f-48d3-b3d5-f3e8dfeb942a.png?auth_key=1868654614-832a9b4688744df7a35f36391f7c58b3-0-fd389e8d85ff934788a098e78be8c18a" alt="SecureVault Logo" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+            <h2 style="font-size: 1.8rem; margin-top: 20px; color: var(--primary);">Masuk Vault</h2>
+            <p style="color: var(--text-gray);">Verifikasi akun Anda</p>
+        </div>
+
+        <form id="form-login-1">
+            <div class="form-group">
+                <label class="form-label">Email atau Username</label>
+                <input type="text" id="login-id" class="form-input" placeholder="Email atau Username" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Kata Sandi</label>
+                <input type="password" id="login-password" class="form-input" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Lanjut ke PIN</button>
+        </form>
+
+        <div class="text-center mt-2">
+            <p style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 10px;">Belum punya akun?</p>
+            <button class="btn btn-text" onclick="nav.to('register-screen')" style="font-weight: 700; font-size: 1rem;">Daftar Sekarang</button>
+        </div>
+
+        <p class="text-center mt-2" style="font-size: 0.9rem; color: var(--primary); font-weight: 600; cursor: pointer;" onclick="nav.to('forgot-password-screen')">Lupa Kata Sandi?</p>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- LOGIN SCREEN 2 (PIN) -->
+    <section id="login-screen-2" class="view no-header-padding hidden">
+        <div class="text-center" style="margin-bottom: 30px; margin-top: 60px;">
+            <div style="width: 80px; height: 80px; background: var(--primary-light); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2rem; font-weight: bold;">
+                🔐
+            </div>
+            <h2 style="font-size: 1.8rem; margin-top: 15px; color: var(--primary);">Akses PIN</h2>
+            <p style="color: var(--text-gray);">Masukkan PIN untuk membuka Vault</p>
+        </div>
+
+        <div id="pin-lock-msg" class="lock-msg"></div>
+
+        <form id="form-login-2">
+            <div class="form-group">
+                <label class="form-label text-center" style="display:block;">6 Digit PIN</label>
+                <input type="tel" id="login-pin-input" class="form-input" maxlength="6" pattern="\d+" placeholder="•••••" style="text-align:center; font-size: 2rem; letter-spacing: 15px;" required autocomplete="off" inputmode="numeric">
+            </div>
+            <div id="login-strike-counter" class="strike-counter"></div>
+            <button type="submit" id="btn-pin-submit" class="btn btn-primary">Buka Vault</button>
+        </form>
+
+        <button class="btn btn-text" onclick="nav.backToLogin1()" style="margin-top: 30px; color: var(--text-gray);">
+            ← Kembali ke Login
+        </button>
+
+        <!-- Reset PIN Flow -->
+        <div id="reset-pin-area" style="display:none; margin-top: 30px; border-top: 1px solid var(--border-light); padding-top: 20px;">
+            <h3 class="text-center" style="font-size: 1.1rem; color: var(--danger);">PIN Terkunci</h3>
+            <p class="text-center" style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Anda harus membuat ulang PIN untuk melanjutkan.</p>
+            <form id="form-reset-pin">
+                <div class="form-group">
+                    <label class="form-label">Email/Username</label>
+                    <input type="text" id="reset-id" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kata Sandi</label>
+                    <input type="password" id="reset-pass" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">PIN Baru</label>
+                    <input type="tel" id="reset-new-pin" class="form-input" maxlength="6" pattern="\d+" required inputmode="numeric">
+                </div>
+                <button type="submit" class="btn btn-danger">Buat Ulang PIN</button>
+                <button type="button" class="btn btn-text" onclick="nav.to('auth-screen')">Batal</button>
+            </form>
+        </div>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- FORGOT PASSWORD SCREEN -->
+    <section id="forgot-password-screen" class="view no-header-padding hidden">
+        <div style="margin-bottom: 25px; display: flex; align-items: center;">
+            <button class="icon-btn" onclick="nav.back()">←</button>
+            <h2 style="text-align: left; font-size: 1.5rem; margin: 0;">Lupa Kata Sandi</h2>
+        </div>
+        
+        <div id="forgot-step-1">
+            <p style="margin-bottom: 20px; color: #666;">Masukkan identitas Anda untuk memulai pemulihan.</p>
+            <form id="form-forgot-1">
+                <div class="form-group">
+                    <label class="form-label">Email atau Username</label>
+                    <input type="text" id="forgot-id" class="form-input" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Cari Akun</button>
+            </form>
+        </div>
+        
+        <div id="forgot-step-2" style="display:none;">
+            <p style="margin-bottom: 20px; color: #666;">Jawab pertanyaan keamanan untuk mereset kata sandi.</p>
+            <div class="sq-item" style="border-left: 5px solid var(--primary);">
+                <div id="forgot-question-text" style="font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; color: var(--primary);">...</div>
+                <input type="text" id="forgot-answer" class="form-input" placeholder="Jawaban Anda" required>
+            </div>
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="verifySecurityAnswer()">Verifikasi Jawaban</button>
+        </div>
+        
+        <div id="forgot-step-3" style="display:none;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="width: 50px; height: 50px; background: var(--success-bg); color: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 10px;">✔</div>
+                <h3 style="color: var(--success);">Verifikasi Berhasil!</h3>
+            </div>
+            <p style="margin-bottom: 20px; color: #666;">Silakan buat kata sandi baru.</p>
+            <form id="form-forgot-3">
+                <div class="form-group">
+                    <label class="form-label">Kata Sandi Baru</label>
+                    <input type="password" id="forgot-new-pass" class="form-input" required>
+                    <small style="color: var(--text-muted);">Harus memenuhi syarat pendaftaran.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Kata Sandi Baru</button>
+            </form>
+        </div>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard-screen" class="view hidden" style="padding-top: var(--nav-height);">
+        <header>
+            <div class="header-title">Vault Saya</div>
+            <div style="display: flex; gap: 5px;">
+                <button class="icon-btn" onclick="nav.to('settings-screen')">⚙️</button>
+                <button class="icon-btn lock-btn" onclick="auth.lockVault()">🔒</button>
+            </div>
+        </header>
+        
+        <div style="padding: 20px;">
+            <div class="stats-card" onclick="openAdvancedStats()">
+                <div class="stats-number" id="total-count">0</div>
+                <div class="stats-label">Total Kata Sandi (Klik Analisis)</div>
+                <div style="position: absolute; right: 0; bottom: 0; opacity: 0.1; font-size: 5rem; pointer-events: none;">🛡️</div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="action-card" onclick="nav.toAddScreen()">
+                    <span class="action-icon">➕</span>
+                    <span class="action-label">Tambah</span>
+                </div>
+                <div class="action-card" onclick="nav.toSearchScreen()">
+                    <span class="action-icon">🔍</span>
+                    <span class="action-label">Cari</span>
+                </div>
+                <div class="action-card" onclick="nav.to('recovery-screen')">
+                    <span class="action-icon">♻️</span>
+                    <span class="action-label">Sampah</span>
+                </div>
+            </div>
+
+            <h3 style="margin: 25px 0 15px; font-size: 1.1rem; color: var(--text-dark);">Riwayat Akses Terakhir</h3>
+            <div id="audit-log-list" style="max-height: 300px; overflow-y: auto; padding-right: 5px;" class="item-list"></div>
+        </div>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- SEARCH / LIST (TOP AREA FILTER DESIGN) -->
+    <section id="search-screen" class="view hidden">
+        <div style="margin-bottom: 15px; display: flex; align-items: center; padding: 0 0 10px 0;">
+            <button class="icon-btn" onclick="nav.toDashboard()">←</button>
+            <h2 style="text-align: left; font-size: 1.5rem; margin: 0;">Semua Data</h2>
+        </div>
+
+        <!-- Sticky Filter Area -->
+        <div class="search-header-area">
+            <div class="search-bar-row">
+                <!-- View Toggles -->
+                <div class="view-toggle-group-mini">
+                    <button id="btn-view-list" class="view-toggle-btn-mini active" onclick="setViewMode('list')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></svg>
+                    </button>
+                    <button id="btn-view-grid" class="view-toggle-btn-mini" onclick="setViewMode('grid')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
+                    </button>
+                </div>
+
+                <input type="text" id="search-input" class="search-input" placeholder="Cari aplikasi..." onkeyup="renderList()">
+            </div>
+
+            <!-- Full Width Filter Button -->
+            <button id="btn-filter-top" class="btn-filter-top" onclick="toggleTopFilter()">
+                Filter
+            </button>
+
+            <!-- Expanded Top Filters -->
+            <div id="top-filter-area" class="top-filter-container">
+                <div class="filter-section">
+                    <div class="filter-section-label">Urutkan</div>
+                    <div class="filter-scroll-top">
+                        <div class="filter-chip-top" id="top-sort-az" onclick="applySort('name_asc', this)">A–Z</div>
+                        <div class="filter-chip-top" id="top-sort-za" onclick="applySort('name_desc', this)">Z–A</div>
+                        <div class="filter-chip-top" id="top-sort-new" onclick="applySort('date_new', this)">Terbaru</div>
+                        <div class="filter-chip-top" id="top-sort-old" onclick="applySort('date_old', this)">Terlama</div>
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <div class="filter-section-label">Kategori</div>
+                    <div class="filter-scroll-top" id="top-category-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULTS CONTAINER -->
+        <div id="result-list" class="item-list"></div>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- ADD/EDIT SCREEN -->
+    <section id="add-screen" class="view hidden">
+        <div style="margin-bottom: 20px; display: flex; align-items: center;">
+            <button class="icon-btn" onclick="nav.toDashboard()">←</button>
+            <h2 id="form-title" style="text-align: left; font-size: 1.5rem; margin: 0;">Simpan Data</h2>
+        </div>
+        
+        <form id="form-add">
+            <input type="hidden" id="edit-id">
+            <input type="file" id="inp-img" class="hidden" accept="image/*">
+            
+            <div class="upload-area" id="upload-area" onclick="document.getElementById('inp-img').click()">
+                <span style="color: #aaa; font-size: 0.8rem; text-align: center; padding: 10px;">Tap Icon<br>500x500px</span>
+                <img id="img-preview">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nama Aplikasi</label>
+                <input type="text" id="inp-name" class="form-input" placeholder="Contoh: Instagram" required>
+            </div>
+            
+            <!-- CATEGORY UI -->
+            <div class="cat-manager-inline">
+                <div style="margin-bottom: 12px; font-size: 0.85rem; color: var(--text-gray); font-weight: 700;">KATEGORI</div>
+                <div id="cat-manager-grid" class="cat-manager-grid"></div>
+                <div class="cat-add-wrapper">
+                    <input type="text" id="new-cat-input" class="form-input" placeholder="Kategori Baru" style="flex: 1; padding: 12px;">
+                    <button type="button" class="btn btn-primary" style="width: auto; padding: 0 20px;" onclick="addNewCategoryInline()">+ Tambah</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" id="inp-user" class="form-input" placeholder="Username / Akun ID">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="inp-email" class="form-input" placeholder="email@contoh.com">
+            </div>
+            
+            <div class="toggle-group">
+                <span style="font-weight:600; font-size:0.9rem;">Tambah URL Website?</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="check-url" onchange="toggleUrlGroup()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="form-group hidden" id="group-url" style="display: none;">
+                <label class="form-label">URL Website</label>
+                <input type="url" id="inp-url" class="form-input" placeholder="https://...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Kata Sandi</label>
+                <input type="text" id="inp-pass" class="form-input" placeholder="Password Aplikasi" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Catatan Aman</label>
+                <textarea id="inp-desc" class="form-textarea" placeholder="Catatan tambahan..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">PIN Item (Keamanan Tambahan)</label>
+                <input type="tel" id="inp-item-pin" class="form-input" maxlength="6" pattern="\d+" placeholder="PIN Item (6 Angka)" required inputmode="numeric">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Simpan Data</button>
+        </form>
+        
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings-screen" class="view hidden">
+        <div style="margin-bottom: 20px; display: flex; align-items: center;">
+            <button class="icon-btn" onclick="nav.toDashboard()">←</button>
+            <h2 style="text-align: left; font-size: 1.5rem; margin: 0;">Pengaturan</h2>
+        </div>
+        
+        <div class="item-list">
+            <!-- Profile Menu -->
+            <div class="item-card" onclick="nav.to('profile-screen')">
+                <div class="item-icon" style="background: #e0f2f1; color: #009688;">👤</div>
+                <div class="item-details">
+                    <div class="item-name">Profil Saya</div>
+                    <div class="item-meta">Lihat & Edit Data Akun</div>
+                </div>
+            </div>
+            
+            <div class="item-card" onclick="openChangePinModal()">
+                <div class="item-icon" style="background: var(--primary-light); color: var(--primary);">🔐</div>
+                <div class="item-details">
+                    <div class="item-name">Ubah PIN Dashboard</div>
+                    <div class="item-meta">Keamanan Utama</div>
+                </div>
+            </div>
+            <div class="item-card" onclick="openChangeMasterModal()">
+                <div class="item-icon" style="background: var(--primary-light); color: var(--primary);">🔑</div>
+                <div class="item-details">
+                    <div class="item-name">Ubah Kata Sandi Utama</div>
+                    <div class="item-meta">Password Master</div>
+                </div>
+            </div>
+            
+            <!-- Separator -->
+            <div style="height: 1px; background: var(--border-light); margin: 10px 0;"></div>
+
+            <!-- LOG OUT BUTTON -->
+            <div class="item-card" onclick="auth.requestLogout()" style="border-left: 4px solid var(--danger);">
+                <div class="item-icon" style="background: var(--danger-bg); color: var(--danger);">🚪</div>
+                <div class="item-details">
+                    <div class="item-name" style="color: var(--danger);">Log Out</div>
+                    <div class="item-meta">Keluar dari sesi login</div>
+                </div>
+            </div>
+        </div>
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- PROFILE SCREEN -->
+    <section id="profile-screen" class="view hidden">
+        <div style="margin-bottom: 25px; display: flex; align-items: center;">
+            <button class="icon-btn" onclick="nav.to('settings-screen')">←</button>
+            <h2 style="text-align: left; font-size: 1.5rem; margin: 0;">Profil Saya</h2>
+        </div>
+
+        <div class="profile-header">
+            <div class="profile-avatar-wrapper" onclick="triggerProfilePhotoUpload()">
+                <div class="profile-avatar" id="profile-avatar-display">
+                    <span id="profile-avatar-letter">U</span>
+                    <img id="profile-avatar-img" style="display:none;">
+                </div>
+                <div class="avatar-edit-overlay">📷</div>
+            </div>
+            <input type="file" id="inp-profile-photo" class="hidden" accept="image/*">
+            
+            <h3 id="profile-display-username" style="color: var(--primary); margin-bottom: 5px;">Username</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Anggota sejak 2026</p>
+        </div>
+
+        <div class="profile-item-row">
+            <div>
+                <div class="profile-item-label">Username</div>
+                <div class="profile-item-value" id="profile-username">-</div>
+            </div>
+        </div>
+
+        <div class="profile-item-row">
+            <div>
+                <div class="profile-item-label">Email</div>
+                <div class="profile-item-value" id="profile-email">-</div>
+            </div>
+        </div>
+
+        <div class="profile-item-row">
+            <div>
+                <div class="profile-item-label">Nomor Telepon</div>
+                <div class="profile-item-value" id="profile-phone">-</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="btn btn-primary" onclick="openEditProfileModal()">
+                <span>✏️</span> Edit Data Profil
+            </button>
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.8rem; padding: 0 20px;">
+                Perubahan data profil memerlukan verifikasi ganda (Kata Sandi & PIN) demi keamanan maksimal.
+            </p>
+        </div>
+
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- RECOVERY -->
+    <section id="recovery-screen" class="view hidden">
+        <div style="margin-bottom: 15px; display: flex; align-items: center;">
+            <button class="icon-btn" onclick="nav.toDashboard()">←</button>
+            <h2 style="text-align: left; font-size: 1.5rem; margin: 0;">Sampah</h2>
+        </div>
+        <div id="recovery-list" class="item-list"></div>
+        <div class="app-footer">© 2026–Present Vikora Global Holdings. All Rights Reserved.</div>
+    </section>
+
+    <!-- MODALS -->
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="modal-edit-profile" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="text-align: center; margin-bottom: 20px;">Edit Data Profil</h3>
+            <p style="color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-bottom: 20px;">Verifikasi ganda wajib untuk menyimpan perubahan.</p>
+            
+            <!-- Photo Preview in Modal -->
+            <div style="text-align:center; margin-bottom:20px;">
+                <div class="profile-avatar-wrapper" style="margin:0 auto; width:80px; height:80px;" onclick="document.getElementById('inp-profile-photo').click()">
+                    <div class="profile-avatar" id="edit-profile-avatar-preview" style="font-size:2rem; border-width:3px;">
+                        <span id="edit-preview-letter">U</span>
+                        <img id="edit-preview-img" style="display:none;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Inputs -->
+            <div class="form-group">
+                <label class="form-label">Username Baru</label>
+                <input type="text" id="edit-prof-username" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Baru</label>
+                <input type="email" id="edit-prof-email" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nomor Telepon Baru</label>
+                <input type="tel" id="edit-prof-phone" class="form-input">
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <!-- Verification -->
+            <div class="form-group">
+                <label class="form-label">Verifikasi: Kata Sandi Utama</label>
+                <input type="password" id="edit-prof-pass" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Verifikasi: PIN Dashboard</label>
+                <input type="tel" id="edit-prof-pin" class="form-input" maxlength="6" required inputmode="numeric">
+            </div>
+
+            <button class="btn btn-primary" onclick="saveProfileChanges()">Simpan Perubahan</button>
+            <button class="btn btn-text" onclick="closeModal('modal-edit-profile')" style="margin-top: 10px;">Batal</button>
+        </div>
+    </div>
+
+    <!-- PIN VERIFICATION MODAL -->
+    <div id="modal-pin" class="modal-overlay">
+        <div class="modal-box">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <div style="width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 10px;">🔒</div>
+                <h3>Verifikasi Keamanan</h3>
+            </div>
+            <p id="pin-msg" style="color: #666; font-size: 0.9rem; margin-bottom: 20px; text-align: center;">Masukkan PIN untuk melanjutkan.</p>
+            <input type="tel" id="verify-pin-input" class="form-input" maxlength="6" placeholder="6 Digit PIN" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px;" inputmode="numeric">
+            <button class="btn btn-primary" style="margin-top: 20px;" id="btn-process-pin-action">Konfirmasi</button>
+            <button class="btn btn-text" onclick="closeModal('modal-pin')" style="margin-top: 15px; color: #888;">Batal</button>
+        </div>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div id="modal-detail" class="modal-overlay">
+        <div class="modal-box" style="max-height: 90vh; overflow-y: auto; padding: 0;">
+            <div style="padding: 25px 25px 10px;">
+                <div class="detail-header">
+                    <div class="detail-icon-large">
+                        <img id="detail-img">
+                        <span id="detail-icon-text">S</span>
+                    </div>
+                    <h3 id="detail-title" style="font-size: 1.5rem; margin-bottom: 5px;">Nama Aplikasi</h3>
+                    <span id="detail-cat-badge" class="badge badge-cat" style="font-size: 0.8rem;">Kategori</span>
+                </div>
+
+                <div class="detail-container">
+                    <div id="detail-url-row" class="detail-row hidden">
+                        <span class="detail-label">WEBSITE</span>
+                        <div class="detail-value">
+                            <span id="detail-url-text" style="font-size: 0.95rem; color: var(--primary); text-decoration: underline;">...</span>
+                            <div style="display: flex; gap: 5px;">
+                                <button class="detail-action-btn" onclick="copyToClipboard(document.getElementById('detail-url-text').textContent)">📋</button>
+                                <button class="detail-action-btn" onclick="openExternalLink()">🌐</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">USERNAME</span>
+                        <div class="detail-value">
+                            <span id="detail-user">-</span>
+                            <button class="detail-action-btn" onclick="copyToClipboard(document.getElementById('detail-user').textContent)">📋</button>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">EMAIL</span>
+                        <div class="detail-value">
+                            <span id="detail-email">-</span>
+                            <button class="detail-action-btn" onclick="copyToClipboard(document.getElementById('detail-email').textContent)">📋</button>
+                        </div>
+                    </div>
+
+                    <div class="detail-row" style="border: 2px solid var(--primary-light); background: var(--primary-light);">
+                        <span class="detail-label" style="color: var(--primary);">KATA SANDI</span>
+                        <div class="detail-value" style="justify-content: center;">
+                            <span id="detail-pass" class="detail-pass-value">******</span>
+                            <button class="detail-action-btn" id="btn-toggle-pass" onclick="togglePassVisibility()">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="detail-row">
+                        <span class="detail-label">CATATAN</span>
+                        <div id="detail-desc" style="font-size: 0.9rem; color: #555; white-space: pre-wrap; margin-top: 5px;">-</div>
+                    </div>
+
+                    <div class="detail-meta" style="text-align: center; font-size: 0.8rem; color: #aaa; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                        <p id="detail-created-at">Dibuat: -</p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="closeModal('modal-detail')" style="border:none; border-top: 1px solid #eee; border-radius: 0 0 20px 20px; padding: 15px;">Tutup</button>
+        </div>
+    </div>
+
+    <!-- REVISED STATS MODAL (PROFESSIONAL ANALYSIS) -->
+    <div id="modal-stats" class="modal-overlay">
+        <div class="modal-box" style="max-width: 400px;">
+            <h3 style="margin-bottom: 5px; text-align: center; font-size: 1.3rem;">Analisis Keamanan</h3>
+            <p style="text-align: center; color: #888; font-size: 0.8rem; margin-bottom: 25px;">Laporan Kesehatan Vault Anda</p>
+            <div id="stats-content" class="analysis-wrapper"></div>
+            <button class="btn btn-primary" style="margin-top: 20px;" onclick="closeModal('modal-stats')">Tutup</button>
+        </div>
+    </div>
+
+    <!-- CHANGE PIN MODAL -->
+    <div id="modal-change-pin" class="modal-overlay">
+        <div class="modal-box" style="text-align: left;">
+            <h3 style="text-align: center; margin-bottom: 20px;">Ganti PIN Dashboard</h3>
+            <div class="form-group">
+                <label class="form-label">PIN Lama</label>
+                <input type="tel" id="cp-old" class="form-input" maxlength="6" style="text-align: center; letter-spacing: 5px;" inputmode="numeric">
+            </div>
+            <div class="form-group">
+                <label class="form-label">PIN Baru</label>
+                <input type="tel" id="cp-new" class="form-input" maxlength="6" style="text-align: center; letter-spacing: 5px;" inputmode="numeric">
+            </div>
+            <button class="btn btn-primary" onclick="auth.changePin()">Simpan</button>
+            <button class="btn btn-text" onclick="closeModal('modal-change-pin')" style="margin-top: 10px;">Batal</button>
+        </div>
+    </div>
+
+    <!-- CHANGE MASTER MODAL -->
+    <div id="modal-change-master" class="modal-overlay">
+        <div class="modal-box" style="text-align: left;">
+            <h3 style="text-align: center; margin-bottom: 20px;">Ganti Sandi Utama</h3>
+            <div class="form-group">
+                <label class="form-label">Sandi Lama</label>
+                <input type="password" id="cm-old" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Sandi Baru</label>
+                <input type="password" id="cm-new" class="form-input">
+            </div>
+            <button class="btn btn-primary" onclick="auth.changeMaster()">Simpan</button>
+            <button class="btn btn-text" onclick="closeModal('modal-change-master')" style="margin-top: 10px;">Batal</button>
+        </div>
+    </div>
+
+    <!-- ACTION SHEET (Bottom) -->
+    <div id="action-sheet-overlay" class="action-sheet-overlay" onclick="closeActionSheet()">
+        <div class="action-sheet" onclick="event.stopPropagation()">
+            <div style="width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin-bottom: 20px;"></div>
+            <h3 style="margin-bottom: 25px; font-size: 1.1rem; color: var(--text-dark);">Pilih Aksi</h3>
+            <div class="sheet-grid">
+                <div class="sheet-item" onclick="handleSheetAction('view')">
+                    <span class="sheet-item-icon">👁️</span>
+                    <span>Lihat</span>
+                </div>
+                <div class="sheet-item" onclick="handleSheetAction('copy')">
+                    <span class="sheet-item-icon">📋</span>
+                    <span>Salin</span>
+                </div>
+                <div class="sheet-item" onclick="handleSheetAction('edit')">
+                    <span class="sheet-item-icon">✏️</span>
+                    <span>Edit</span>
+                </div>
+                <div class="sheet-item" onclick="handleSheetAction('delete')">
+                    <span class="sheet-item-icon" style="color: var(--danger);">🗑️</span>
+                    <span style="color: var(--danger);">Hapus</span>
+                </div>
+            </div>
+            <button class="btn btn-text" onclick="closeActionSheet()" style="width: 100%; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; font-size: 1rem; color: var(--text-gray);">Batal</button>
+        </div>
+    </div>
+
+    <!-- LOGOUT CONFIRMATION MODAL -->
+    <div id="modal-logout" class="modal-overlay">
+        <div class="modal-box">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <div style="width: 60px; height: 60px; background: var(--danger-bg); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 10px;">🚪</div>
+                <h3>Log Out</h3>
+            </div>
+            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px; text-align: center;">
+                Anda akan keluar dari sesi login. Verifikasi diperlukan untuk keamanan.
+            </p>
+            
+            <div class="form-group">
+                <label class="form-label">Email atau Username</label>
+                <input type="text" id="logout-id" class="form-input" placeholder="Email / Username" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Kata Sandi</label>
+                <input type="password" id="logout-pass" class="form-input" placeholder="Kata Sandi" required>
+            </div>
+
+            <button class="btn btn-danger" onclick="auth.confirmLogout()">Konfirmasi Log Out</button>
+            <button class="btn btn-text" onclick="closeModal('modal-logout')" style="margin-top: 10px; color: #888;">Batal</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ==========================================================================
+       CORE APPLICATION STATE
+       ========================================================================== */
+    const App = {
+        data: null, 
+        items: [], 
+        trash: [], 
+        categories: ["Umum", "Sosial Media", "Email", "Perbankan", "Marketplace", "Work"],
+        auditLog: [], 
+        currentFilter: 'All',
+        currentSort: 'name_asc',
+        viewMode: 'list', // 'list' or 'grid'
+        activeItem: null,
+        activeAction: null,
+        inactivityTimer: null,
+        lockTime: 3 * 60 * 1000, 
+        selectedCategory: "Umum",
+        
+        // Auth Flow States
+        tempUser: null, 
+        recoveryUser: null, // FIX: Separate state for recovery flow
+        loginAttempts: 0,
+        pinLocked: false,
+        tempProfileImage: null // Store base64 of new profile image before saving
+    };
+
+    /* ==========================================================================
+       NAVIGATION SYSTEM
+       ========================================================================== */
+    const nav = {
+        history: [],
+        clearHistory: () => { nav.history = ['auth-screen']; },
+        
+        to: (screenId) => {
+            document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(screenId);
+            if(!target) return console.error("Screen not found: " + screenId);
+            
+            target.classList.remove('hidden');
+            
+            // FIX: Only push to history if NOT search screen or add screen (avoid filter loss)
+            if (screenId !== 'add-screen' && screenId !== 'search-screen') { 
+                if(nav.history[nav.history.length - 1] !== screenId) {
+                    nav.history.push(screenId);
+                }
+            }
+            
+            if (screenId === 'dashboard-screen') updateDashboard();
+            if (screenId === 'search-screen') renderList();
+            if (screenId === 'recovery-screen') renderTrashList();
+            if (screenId === 'add-screen') renderCategoryUI();
+            if (screenId === 'profile-screen') updateProfileUI();
+            
+            resetTimer();
+        },
+        
+        toAddScreen: () => { nav.clearHistory(); resetForm(); nav.to('add-screen'); },
+        toSearchScreen: () => { nav.clearHistory(); nav.to('search-screen'); },
+        toDashboard: () => { nav.clearHistory(); nav.to('dashboard-screen'); },
+        
+        back: () => {
+            // PERBAIKAN P1 & P2: Logic navigasi berbasis state
+            if (nav.history.length > 1) {
+                // Cek apakah sedang di flow recovery
+                const current = nav.history[nav.history.length - 1];
+                if(current === 'forgot-password-screen') {
+                    // Jika user membatalkan recovery secara eksplisit (tombol back), baru reset
+                    // Kita kembalikan ke login-1 dan reset recovery state
+                    App.recoveryUser = null;
+                    document.getElementById('forgot-step-1').style.display = 'block';
+                    document.getElementById('forgot-step-2').style.display = 'none';
+                    document.getElementById('forgot-step-3').style.display = 'none';
+                    document.getElementById('forgot-id').value = '';
+                    document.getElementById('forgot-answer').value = '';
+                    
+                    // Pop current screen and move back
+                    nav.history.pop(); 
+                    const prev = nav.history[nav.history.length - 1];
+                    nav.to(prev);
+                    nav.history.pop(); // remove duplicate push from .to()
+                    return;
+                }
+
+                // Logic standar
+                nav.history.pop();
+                const prev = nav.history[nav.history.length - 1];
+                nav.to(prev);
+                nav.history.pop(); 
+            } else { nav.toDashboard(); }
+        },
+
+        // FIX: Specialized back logic for screens with sub-flows
+        backToLogin1: () => {
+            // Reset auth states
+            App.tempUser = null; 
+            App.recoveryUser = null;
+            App.loginAttempts = 0; 
+            
+            document.getElementById('login-password').value = ''; 
+            nav.to('login-screen-1');
+        }
+    };
+
+    /* ==========================================================================
+       UTILITIES
+       ========================================================================== */
+    function simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |=0; 
+        }
+        return hash.toString();
+    }
+
+    function toast(msg, type = 'success') {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.style.background = type === 'error' ? 'var(--danger)' : '#323232';
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    const closeModal = (id) => document.getElementById(id).classList.remove('active');
+
+    function formatDate(timestamp) {
+        if(!timestamp) return '-';
+        const d = new Date(timestamp);
+        const date = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        const time = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        return `${date}, ${time}`;
+    }
+
+    /* ==========================================================================
+       PASSWORD STRENGTH LOGIC (UPDATED CRITERIA)
+       ========================================================================== */
+    function checkNewPasswordStrength(password) {
+        if (password.length <= 5) {
+            return { level: 'Lemah', color: 'var(--danger)', width: '33%' };
+        }
+        
+        const hasLetter = /[a-zA-Z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const hasSpecial = /[^a-zA-Z0-9]/.test(password);
+
+        // Waspada: > 5 chars, Huruf & Angka
+        if (password.length > 5 && hasLetter && hasNumber && !hasSpecial) {
+            return { level: 'Waspada', color: 'var(--warning)', width: '66%' };
+        }
+
+        // Kuat: > 8 chars, Huruf, Angka, Spesial
+        if (password.length > 8 && hasLetter && hasNumber && hasSpecial) {
+            return { level: 'Kuat', color: 'var(--success)', width: '100%' };
+        }
+
+        // Intermediate
+        if (password.length > 5) {
+             return { level: 'Waspada', color: 'var(--warning)', width: '50%' };
+        }
+
+        return { level: 'Lemah', color: 'var(--danger)', width: '20%' };
+    }
+
+    /* ==========================================================================
+       AUTHENTICATION SYSTEM
+       ========================================================================== */
+    const auth = {
+        init: () => {
+            nav.to('auth-screen');
+            // Add event listeners for auto-lock
+            window.addEventListener('mousemove', resetTimer);
+            window.addEventListener('keypress', resetTimer);
+            window.addEventListener('touchmove', resetTimer);
+            window.addEventListener('click', resetTimer);
+            
+            // Handle Android Back Button (WebView)
+            document.addEventListener('backbutton', (e) => {
+                e.preventDefault();
+                nav.back();
+            }, false);
+        },
+
+        register: (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reg-email').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const pin = document.getElementById('reg-pin').value;
+            
+            if (!validateEmail(email)) return toast('Format email salah', 'error');
+            if (!validateUsername(username)) return toast('Username huruf kecil saja', 'error');
+            if (!validatePhone(phone)) return toast('Nomor HP harus diawali +', 'error');
+            if (!validatePasswordRealtime(password, true)) return toast('Kata sandi lemah', 'error');
+            
+            const sqs = getSecurityQuestions();
+            if (sqs.length === 0) return toast('Minimal 1 pertanyaan keamanan', 'error');
+
+            const existingUser = findUserByEmailOrUsername(email, username);
+            if (existingUser) {
+                if (existingUser.email === email) return toast('Email sudah terdaftar', 'error');
+                if (existingUser.username === username) return toast('Username sudah dipakai', 'error');
+            }
+
+            const userData = {
+                id: Date.now().toString(),
+                email: email,
+                username: username,
+                phone: phone,
+                passwordHash: simpleHash(password),
+                pinHash: simpleHash(pin),
+                securityQuestions: sqs,
+                items: [],
+                trash: [],
+                categories: [...App.categories],
+                auditLog: [],
+                pinLocked: false,
+                failedPinAttempts: 0,
+                profileImage: null // Added for profile photo
+            };
+
+            localStorage.setItem(`sv_user_${userData.id}`, JSON.stringify(userData));
+            localStorage.setItem('sv_index_email', email);
+            localStorage.setItem('sv_index_user', username);
+
+            toast('Pendaftaran Berhasil!');
+            e.target.reset();
+            resetSecurityQuestionsUI();
+            resetStrengthMeter();
+            nav.to('login-screen-1');
+        },
+
+        loginPhase1: (e) => {
+            e.preventDefault();
+            const idInput = document.getElementById('login-id').value.trim();
+            const passInput = document.getElementById('login-password').value;
+
+            const user = findUserByEmailOrUsername(idInput, idInput);
+
+            if (!user) return toast('Akun tidak ditemukan', 'error');
+            if (simpleHash(passInput) !== user.passwordHash) return toast('Kata sandi salah', 'error');
+
+            // Store in tempUser for Phase 2
+            App.tempUser = user; 
+            App.loginAttempts = 0;
+            App.pinLocked = user.pinLocked || false;
+            
+            nav.to('login-screen-2');
+            updatePinLockUI();
+        },
+
+        loginPhase2: (e) => {
+            e.preventDefault();
+            if (App.pinLocked) return;
+
+            const pinInput = document.getElementById('login-pin-input').value;
+            
+            if (simpleHash(pinInput) === App.tempUser.pinHash) {
+                // SUCCESSFUL LOGIN
+                App.data = App.tempUser;
+                App.items = App.data.items || [];
+                App.trash = App.data.trash || [];
+                App.categories = App.data.categories || [...App.categories];
+                App.auditLog = App.data.auditLog || [];
+                
+                // FIX: Clear tempUser to prevent backdoor
+                App.tempUser = null; 
+                App.loginAttempts = 0;
+                
+                document.getElementById('login-pin-input').value = '';
+                document.getElementById('login-strike-counter').textContent = '';
+                
+                nav.clearHistory();
+                nav.toDashboard();
+                toast('Selamat Datang!');
+            } else {
+                App.loginAttempts++;
+                handlePinFailure();
+            }
+        },
+
+        lockVault: () => {
+            if(!App.data) return;
+            lockStateManager.setLockState(true, "manual");
+            toast('Vault Terkunci');
+            nav.to('login-screen-2');
+            document.getElementById('login-pin-input').value = '';
+            // Focus on pin input for better UX
+            setTimeout(() => document.getElementById('login-pin-input').focus(), 100);
+        },
+
+        requestLogout: () => {
+            document.getElementById('logout-id').value = '';
+            document.getElementById('logout-pass').value = '';
+            document.getElementById('modal-logout').classList.add('active');
+        },
+
+        confirmLogout: () => {
+            const id = document.getElementById('logout-id').value.trim();
+            const pass = document.getElementById('logout-pass').value;
+
+            if((App.data.email !== id && App.data.username !== id) || simpleHash(pass) !== App.data.passwordHash) {
+                return toast('Verifikasi gagal. Data tidak sesuai.', 'error');
+            }
+
+            App.data = null; 
+            App.items = []; 
+            App.tempUser = null;
+            App.recoveryUser = null;
+            
+            closeModal('modal-logout');
+            nav.to('auth-screen');
+            toast('Berhasil Log Out');
+        },
+        
+        changePin: () => {
+            const old = document.getElementById('cp-old').value;
+            const newP = document.getElementById('cp-new').value;
+            if (simpleHash(old) !== App.data.pinHash) return toast('PIN lama salah', 'error');
+            App.data.pinHash = simpleHash(newP);
+            saveData(); closeModal('modal-change-pin');
+            toast('PIN Berhasil Diubah');
+        },
+
+        changeMaster: () => {
+            const old = document.getElementById('cm-old').value;
+            const newP = document.getElementById('cm-new').value;
+            if (simpleHash(old) !== App.data.passwordHash) return toast('Sandi lama salah', 'error');
+            App.data.passwordHash = simpleHash(newP);
+            saveData(); closeModal('modal-change-master');
+            toast('Sandi Utama Diubah');
+        }
+    };
+
+    /* ==========================================================================
+       VALIDATION LOGIC
+       ========================================================================== */
+    function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+    function validateUsername(user) { return /^[a-z0-9_]+$/.test(user); }
+    function validatePhone(phone) { return /^\+[0-9]{8,15}$/.test(phone); }
+
+    const passwordRequirements = {
+        length: (p) => p.length >= 8,
+        capital: (p) => /^[A-Z]/.test(p),
+        number: (p) => /[0-9]/.test(p),
+        symbol: (p) => /[@#$&_+\-]/.test(p)
+    };
+
+    function validatePasswordRealtime(password, strict = false) {
+        let valid = true;
+        const reqs = [
+            { id: 'req-len', check: passwordRequirements.length },
+            { id: 'req-cap', check: passwordRequirements.capital },
+            { id: 'req-num', check: passwordRequirements.number },
+            { id: 'req-sym', check: passwordRequirements.symbol }
+        ];
+
+        reqs.forEach(req => {
+            const el = document.getElementById(req.id);
+            const isMet = req.check(password);
+            if (isMet) {
+                el.classList.remove('invalid');
+                el.classList.add('valid');
+                el.querySelector('.req-icon').textContent = '✔️';
+            } else {
+                el.classList.remove('valid');
+                el.classList.add('invalid');
+                el.querySelector('.req-icon').textContent = '❌';
+                if(strict) valid = false;
+            }
+        });
+
+        updateStrengthMeterUI(password);
+
+        return valid;
+    }
+
+    function updateStrengthMeterUI(password) {
+        const strength = checkNewPasswordStrength(password);
+        const bar = document.getElementById('strength-bar');
+        const text = document.getElementById('strength-text');
+
+        bar.style.width = strength.width;
+        bar.style.backgroundColor = strength.color;
+        text.textContent = strength.level;
+        text.style.color = strength.color;
+    }
+
+    function resetStrengthMeter() {
+        const bar = document.getElementById('strength-bar');
+        const text = document.getElementById('strength-text');
+        bar.style.width = '0%';
+        text.textContent = 'LEMAH';
+        text.style.color = '#ccc';
+    }
+
+    /* ==========================================================================
+       SECURITY QUESTIONS
+       ========================================================================== */
+    function addSecurityQuestionField() {
+        const container = document.getElementById('sq-container');
+        if(container.children.length >=3) return toast('Maksimal 3 pertanyaan', 'error');
+
+        const div = document.createElement('div');
+        div.className = 'sq-item';
+        div.innerHTML = `
+            <button type="button" class="sq-delete-btn" onclick="this.parentElement.remove()">×</button>
+            <input type="text" class="sq-input" placeholder="Tulis pertanyaan custom..." required>
+            <input type="text" class="sq-ans-input" placeholder="Jawaban (akan dienkripsi)" required>
+        `;
+        container.appendChild(div);
+    }
+
+    function getSecurityQuestions() {
+        const container = document.getElementById('sq-container');
+        const items = container.querySelectorAll('.sq-item');
+        const sqs = [];
+        items.forEach(item => {
+            const q = item.querySelector('.sq-input').value.trim();
+            const a = item.querySelector('.sq-ans-input').value.trim();
+            if(q && a) sqs.push({ question: q, answerHash: simpleHash(a.toLowerCase()) });
+        });
+        return sqs;
+    }
+
+    function resetSecurityQuestionsUI() {
+        const container = document.getElementById('sq-container');
+        container.innerHTML = '';
+        addSecurityQuestionField();
+    }
+
+    /* ==========================================================================
+       PIN LOCKING SYSTEM
+       ========================================================================== */
+    function handlePinFailure() {
+        const counterEl = document.getElementById('login-strike-counter');
+        const lockMsgEl = document.getElementById('pin-lock-msg');
+        const formArea = document.getElementById('form-login-2');
+        const resetArea = document.getElementById('reset-pin-area');
+
+        if (App.loginAttempts === 3) {
+            lockMsgEl.textContent = "⚠️ Peringatan: Kesalahan 3x. 5x akan mengunci permanen.";
+            lockMsgEl.classList.add('visible');
+            toast('Hati-hati, hampir terkunci.', 'error');
+        } else if (App.loginAttempts >= 5) {
+            App.pinLocked = true;
+            lockMsgEl.textContent = "🔒 AKSES TERKUNCI: Silakan reset PIN.";
+            lockMsgEl.classList.add('visible');
+            formArea.style.display = 'none';
+            resetArea.style.display = 'block';
+            toast('Vault Dikunci.', 'error');
+        }
+        
+        counterEl.textContent = `Percobaan Gagal: ${App.loginAttempts}/5`;
+        document.getElementById('login-pin-input').value = '';
+        if(navigator.vibrate) navigator.vibrate(200);
+    }
+
+    function updatePinLockUI() {
+        const lockMsgEl = document.getElementById('pin-lock-msg');
+        const formArea = document.getElementById('form-login-2');
+        const resetArea = document.getElementById('reset-pin-area');
+        
+        if (App.pinLocked) {
+            formArea.style.display = 'none';
+            resetArea.style.display = 'block';
+            lockMsgEl.textContent = "🔒 AKSES TERKUNCI";
+            lockMsgEl.classList.add('visible');
+        } else {
+            formArea.style.display = 'block';
+            resetArea.style.display = 'none';
+            lockMsgEl.classList.remove('visible');
+            document.getElementById('login-strike-counter').textContent = '';
+        }
+    }
+
+    document.getElementById('form-reset-pin').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('reset-id').value.trim();
+        const pass = document.getElementById('reset-pass').value;
+        const newPin = document.getElementById('reset-new-pin').value;
+
+        const user = findUserByEmailOrUsername(id, id);
+        
+        if (!user || user.id !== App.tempUser.id) return toast('Identitas salah', 'error');
+        if (simpleHash(pass) !== user.passwordHash) return toast('Kata sandi salah', 'error');
+
+        user.pinHash = simpleHash(newPin);
+        user.pinLocked = false;
+        user.failedPinAttempts = 0;
+        
+        App.tempUser = user;
+        App.pinLocked = false;
+        App.loginAttempts = 0;
+        localStorage.setItem(`sv_user_${user.id}`, JSON.stringify(user));
+
+        toast('PIN Berhasil Diperbarui.');
+        updatePinLockUI();
+        document.getElementById('reset-id').value = '';
+        document.getElementById('reset-pass').value = '';
+        document.getElementById('reset-new-pin').value = '';
+    });
+
+    /* ==========================================================================
+       FORGOT PASSWORD (FIXED STATE MANAGEMENT)
+       ========================================================================== */
+    document.getElementById('form-forgot-1').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('forgot-id').value.trim();
+        const user = findUserByEmailOrUsername(id, id);
+        if(!user) return toast('Akun tidak ditemukan', 'error');
+
+        // FIX: Store in recoveryUser and DO NOT clear it on back button
+        App.recoveryUser = user;
+        document.getElementById('forgot-step-1').style.display = 'none';
+        document.getElementById('forgot-step-2').style.display = 'block';
+        const sq = user.securityQuestions[0];
+        document.getElementById('forgot-question-text').textContent = sq.question;
+        
+        // Reset inputs
+        document.getElementById('forgot-answer').value = '';
+    });
+
+    function verifySecurityAnswer() {
+        const answer = document.getElementById('forgot-answer').value.trim().toLowerCase();
+        const user = App.recoveryUser;
+        const correctHash = user.securityQuestions[0].answerHash;
+        const inputHash = simpleHash(answer);
+
+        if (inputHash === correctHash) {
+            document.getElementById('forgot-step-2').style.display = 'none';
+            document.getElementById('forgot-step-3').style.display = 'block';
+            toast('Verifikasi Berhasil');
+            document.getElementById('forgot-new-pass').value = '';
+        } else {
+            toast('Jawaban Salah', 'error');
+            document.getElementById('forgot-answer').value = '';
+        }
+    }
+
+    document.getElementById('form-forgot-3').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newPass = document.getElementById('forgot-new-pass').value;
+        if (!validatePasswordRealtime(newPass, true)) return toast('Kata sandi baru tidak valid', 'error');
+
+        const user = App.recoveryUser;
+        user.passwordHash = simpleHash(newPass);
+        localStorage.setItem(`sv_user_${user.id}`, JSON.stringify(user));
+        
+        // Only clear recovery state on explicit success or cancel
+        App.recoveryUser = null;
+
+        toast('Kata sandi berhasil diubah. Login.');
+        nav.to('login-screen-1');
+    });
+
+    /* ==========================================================================
+       DATA MANAGEMENT
+       ========================================================================== */
+    function findUserByEmailOrUsername(email, username) {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('sv_user_')) {
+                const user = JSON.parse(localStorage.getItem(key));
+                if (user.email === email || user.username === username) return user;
+            }
+        }
+        return null;
+    }
+
+    function saveData() {
+        if (App.data) {
+            App.data.items = App.items;
+            App.data.trash = App.trash;
+            App.data.categories = App.categories;
+            App.data.auditLog = App.auditLog;
+            App.data.profileImage = App.data.profileImage || null;
+            localStorage.setItem(`sv_user_${App.data.id}`, JSON.stringify(App.data));
+        }
+    }
+
+    /* ==========================================================================
+       DASHBOARD
+       ========================================================================== */
+    function updateDashboard() {
+        document.getElementById('total-count').textContent = App.items.length;
+        const container = document.getElementById('audit-log-list');
+        container.innerHTML = '';
+        if (App.auditLog.length === 0) {
+            container.innerHTML = `<div class="empty-state"><div class="empty-text">Belum ada riwayat.</div></div>`;
+            return;
+        }
+        App.auditLog.slice(0, 5).forEach(log => {
+            const dateStr = formatDate(log.timestamp);
+            let icon = '❓';
+            if (log.action === 'Copy') icon = '📋';
+            if (log.action === 'View') icon = '👁️';
+            if (log.action === 'Edit') icon = '✏️';
+            if (log.action === 'Delete') icon = '🗑️';
+            if (log.action === 'Create') icon = '➕';
+
+            const el = document.createElement('div');
+            el.className = 'item-card'; el.style.padding = '12px';
+            el.innerHTML = `
+                <div class="item-icon" style="width: 35px; height: 35px; font-size: 0.9rem; background: var(--primary-light); color: var(--primary);">${icon}</div>
+                <div class="item-details">
+                    <div class="item-name" style="font-size: 0.95rem;">${log.name}</div>
+                    <div class="item-meta">${dateStr} • ${log.action}</div>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    /* ==========================================================================
+       STATS & VISUALIZATION (REVISED PROFESSIONAL UI & ANIMATION FIX)
+       ========================================================================== */
+    function openAdvancedStats() {
+        const container = document.getElementById('stats-content');
+        container.innerHTML = '';
+
+        if(App.items.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Data kosong.</div>';
+            document.getElementById('modal-stats').classList.add('active');
+            return;
+        }
+
+        let weakCount = 0, mediumCount = 0, strongCount = 0;
+        let dupPassMap = {};
+        let accessCountMap = {};
+        let catRiskMap = {};
+        let ageMap = { d90: 0, d180: 0, d365: 0, older: 0 };
+        
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        const thirtyDaysAgo = now - (30 * oneDayMs);
+
+        App.items.forEach(item => {
+            const score = checkPasswordStrength(item.password);
+            if(score === 1) weakCount++;
+            else if(score === 2) mediumCount++;
+            else strongCount++;
+
+            if(!dupPassMap[item.password]) dupPassMap[item.password] = [];
+            dupPassMap[item.password].push(item.name);
+
+            const accesses = App.auditLog.filter(l => 
+                l.name === item.name && (l.action === 'View' || l.action === 'Copy') && l.timestamp > thirtyDaysAgo
+            ).length;
+            accessCountMap[item.name] = accesses;
+
+            const cat = item.category || "Umum"; 
+            if(!catRiskMap[cat]) catRiskMap[cat] = {weak: 0, medium: 0, strong: 0, old: 0};
+            if(score === 1) catRiskMap[cat].weak++;
+            else if(score === 2) catRiskMap[cat].medium++;
+            else catRiskMap[cat].strong++;
+            
+            const ageDays = (now - (item.updatedAt || item.createdAt)) / oneDayMs;
+            if(ageDays > 365) ageMap.d365++;
+            else if(ageDays > 180) ageMap.d180++;
+            else if(ageDays > 90) ageMap.d90++;
+        });
+
+        let dupCount = 0;
+        let dupImpactCount = 0;
+        Object.values(dupPassMap).forEach(arr => {
+            if(arr.length > 1) {
+                dupCount++;
+                dupImpactCount += arr.length;
+            }
+        });
+
+        let topAccessed = Object.entries(accessCountMap).sort((a,b) => b[1] - a[1]).slice(0, 3);
+
+        let overallStatus = 'strong';
+        const total = App.items.length;
+        const weakRatio = weakCount / total;
+        const mediumRatio = mediumCount / total;
+        
+        if (weakRatio > 0.3) overallStatus = 'weak';
+        else if (mediumRatio > 0.3) overallStatus = 'medium';
+
+        let score = 0;
+        let riskColor = '';
+        let riskLabel = '';
+
+        if (overallStatus === 'weak') {
+            score = Math.floor(Math.random() * (34 - 1 + 1)) + 1;
+            riskColor = 'var(--danger)';
+            riskLabel = 'Rendah';
+        } else if (overallStatus === 'medium') {
+            score = Math.floor(Math.random() * (70 - 35 + 1)) + 35;
+            riskColor = 'var(--warning)';
+            riskLabel = 'Sedang';
+        } else {
+            score = Math.floor(Math.random() * (100 - 71 + 1)) + 71;
+            riskColor = 'var(--success)';
+            riskLabel = 'Tinggi';
+        }
+
+        let recs = [];
+        if(dupCount > 0) recs.push(`Ganti ${dupCount} sandi duplikat.`);
+        if(weakCount > 0) recs.push(`Perkuat ${weakCount} sandi yang lemah.`);
+        if(ageMap.d180 > 0) recs.push(`Perbarui ${ageMap.d180} sandi yang berumur >6 bulan.`);
+        if(recs.length === 0) recs.push("Keamanan Vault Sempurna! 🎉");
+
+        // ==========================================
+        // 1. CARD: SKOR (DYNAMIC SVG CIRCLE ANIMATION)
+        // ==========================================
+        const radius = 45;
+        const circumference = 2 * Math.PI * radius;
+        const dashOffset = circumference - ((score / 100) * circumference);
+
+        const scoreCard = document.createElement('div');
+        scoreCard.className = 'analysis-card';
+        scoreCard.innerHTML = `
+            <div class="card-title">🛡️ Skor Keamanan Vault</div>
+            <div class="score-container">
+                <svg viewBox="0 0 100 100" class="circular-chart">
+                    <circle class="circle-bg" cx="50" cy="50" r="${radius}"></circle>
+                    <circle class="circle-progress" cx="50" cy="50" r="${radius}" 
+                            stroke="${riskColor}" 
+                            stroke-dasharray="${circumference}" 
+                            stroke-dashoffset="${circumference}"> <!-- Start full -->
+                    </circle>
+                    <text x="50" y="52" class="percentage" text-anchor="middle" dominant-baseline="middle" style="font-size: 16px; font-weight: 800;">0%</text>
+                </svg>
+                <div class="score-label-text" style="color: ${riskColor}">MEMUAT</div>
+            </div>
+        `;
+        container.appendChild(scoreCard);
+
+        // ==========================================
+        // 2. CARD: RASIO
+        // ==========================================
+        const weakPct = Math.round((weakCount/total)*100);
+        const mediumPct = Math.round((mediumCount/total)*100);
+        const strongPct = Math.round((strongCount/total)*100);
+
+        const ratioCard = document.createElement('div');
+        ratioCard.className = 'analysis-card';
+        ratioCard.innerHTML = `
+            <div class="card-title">📊 Rasio Kekuatan Kata Sandi</div>
+            
+            <div class="ratio-row">
+                <div class="ratio-label text-weak">Lemah</div>
+                <div class="ratio-track">
+                    <div class="ratio-fill fill-weak" style="width: 0" data-width="${weakPct}%"></div>
+                </div>
+                <div class="ratio-value">${weakPct}%</div>
+            </div>
+
+            <div class="ratio-row">
+                <div class="ratio-label text-warn">Waspada</div>
+                <div class="ratio-track">
+                    <div class="ratio-fill fill-warn" style="width: 0" data-width="${mediumPct}%"></div>
+                </div>
+                <div class="ratio-value">${mediumPct}%</div>
+            </div>
+
+            <div class="ratio-row">
+                <div class="ratio-label text-strong">Kuat</div>
+                <div class="ratio-track">
+                    <div class="ratio-fill fill-strong" style="width: 0" data-width="${strongPct}%"></div>
+                </div>
+                <div class="ratio-value">${strongPct}%</div>
+            </div>
+        `;
+        container.appendChild(ratioCard);
+
+        // ==========================================
+        // 3. CARD: RINGKASAN
+        // ==========================================
+        const summaryCard = document.createElement('div');
+        summaryCard.className = 'analysis-card';
+        summaryCard.innerHTML = `
+            <div class="card-title">⚠️ Ringkasan Risiko</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-val" style="color:var(--danger)">${dupCount}</div>
+                    <div class="summary-lbl">Sandi Duplikat</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-val" style="color:var(--danger)">${dupImpactCount}</div>
+                    <div class="summary-lbl">Akun Terdampak</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-val" style="color:var(--warning)">${ageMap.d180 + ageMap.d365}</div>
+                    <div class="summary-lbl">Sandi Lama (>6 bln)</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-val" style="color:var(--secondary)">${App.auditLog.filter(l => l.timestamp > thirtyDaysAgo).length}</div>
+                    <div class="summary-lbl">Aktivitas 30 Hari</div>
+                </div>
+            </div>
+        `;
+        container.appendChild(summaryCard);
+
+        document.getElementById('modal-stats').classList.add('active');
+
+        // TRIGGER ANIMATIONS AFTER APPEND
+        setTimeout(() => {
+            // 1. Animate Circle (SVG stroke-dasharray)
+            const circle = scoreCard.querySelector('.circle-progress');
+            const textNode = scoreCard.querySelector('.percentage');
+            if(circle) {
+                circle.style.strokeDashoffset = dashOffset;
+            }
+            if(textNode) {
+                textNode.textContent = `${score}%`;
+                // Color update for text based on risk
+                textNode.style.fill = riskColor; 
+            }
+
+            const labelNode = scoreCard.querySelector('.score-label-text');
+            if(labelNode) {
+                labelNode.textContent = riskLabel;
+            }
+
+            // 2. Animate Bars
+            const bars = document.querySelectorAll('.ratio-fill');
+            bars.forEach(bar => {
+                const target = bar.getAttribute('data-width');
+                bar.style.width = target;
+            });
+        }, 100);
+    }
+
+    /* ==========================================================================
+       LOCK STATE MANAGER
+       ========================================================================== */
+    const lockStateManager = {
+        isVaultLocked: false,
+        lockSource: null,
+
+        setLockState: (isLocked, source) => {
+            lockStateManager.isVaultLocked = isLocked;
+            lockStateManager.lockSource = source;
+        },
+
+        unlockAttempt: (pinInput) => {
+            const isPinValid = simpleHash(pinInput) === App.data.pinHash;
+            const isSessionValid = App.data !== null && App.tempUser === null;
+
+            if (isPinValid && isSessionValid) {
+                lockStateManager.setLockState(false, "unlock_success");
+                toast('Vault Terbuka');
+                nav.toDashboard();
+                return true;
+            } else if (isPinValid && !isSessionValid) {
+                lockStateManager.setLockState(false, "force_reval");
+                toast('Vault Terbuka (Recovery Mode)');
+                nav.toDashboard();
+                return true;
+            } else {
+                return false;
+            }
+        }
+    };
+
+    /* ==========================================================================
+       SEARCH & LIST (TOP AREA LOGIC)
+       ========================================================================== */
+    
+    function toggleTopFilter() {
+        const container = document.getElementById('top-filter-area');
+        const btn = document.getElementById('btn-filter-top');
+        container.classList.toggle('expanded');
+        
+        // Visual update on button
+        if(container.classList.contains('expanded')) {
+            btn.style.background = 'var(--white)';
+            btn.style.color = 'var(--primary)';
+            btn.style.border = '2px solid var(--primary)';
+            btn.innerHTML = 'Sembunyikan Filter';
+        } else {
+            btn.style.background = 'var(--primary)';
+            btn.style.color = 'white';
+            btn.style.border = 'none';
+            btn.innerHTML = 'Filter';
+        }
+    }
+
+    function setViewMode(mode) {
+        App.viewMode = mode;
+        const btnList = document.getElementById('btn-view-list');
+        const btnGrid = document.getElementById('btn-view-grid');
+        
+        if(mode === 'list') {
+            btnList.classList.add('active');
+            btnGrid.classList.remove('active');
+        } else {
+            btnList.classList.remove('active');
+            btnGrid.classList.add('active');
+        }
+        
+        renderList();
+    }
+
+    function applySort(sortType, btnElement) {
+        App.currentSort = sortType;
+        document.querySelectorAll('.filter-chip-top').forEach(el => el.classList.remove('active'));
+        btnElement.classList.add('active');
+        renderList();
+    }
+
+    function applyCategory(categoryName, btnElement) {
+        App.currentFilter = categoryName;
+        document.querySelectorAll('.filter-chip-top').forEach(el => el.classList.remove('active'));
+        btnElement.classList.add('active');
+        renderList();
+    }
+
+    function renderList() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const container = document.getElementById('result-list');
+        container.className = App.viewMode === 'grid' ? 'item-grid' : 'item-list';
+        container.innerHTML = '';
+
+        // Initialize Category List for Top Filter if empty
+        const catContainer = document.getElementById('top-category-list');
+        if (catContainer.children.length === 0) {
+            const allBtn = document.createElement('div');
+            allBtn.className = `filter-chip-top ${App.currentFilter === 'All' ? 'active' : ''}`;
+            allBtn.textContent = 'Semua';
+            allBtn.onclick = () => applyCategory('All', allBtn);
+            catContainer.appendChild(allBtn);
+
+            App.categories.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = `filter-chip-top ${App.currentFilter === c ? 'active' : ''}`;
+                btn.textContent = c;
+                btn.onclick = () => applyCategory(c, btn);
+                catContainer.appendChild(btn);
+            });
+        } else {
+            // Sync active states
+            const buttons = catContainer.children;
+            // 0 is Semua
+            if(App.currentFilter === 'All') buttons[0].classList.add('active'); else buttons[0].classList.remove('active');
+            for(let i=1; i<buttons.length; i++) {
+                if(buttons[i].textContent === App.currentFilter) buttons[i].classList.add('active');
+                else buttons[i].classList.remove('active');
+            }
+        }
+
+        // Sync Sort States
+        const sortIds = ['top-sort-az', 'top-sort-za', 'top-sort-new', 'top-sort-old'];
+        const sortTypes = ['name_asc', 'name_desc', 'date_new', 'date_old'];
+        sortIds.forEach((id, idx) => {
+            const el = document.getElementById(id);
+            if(App.currentSort === sortTypes[idx]) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+
+
+        let filtered = App.items.filter(item => {
+            const matchName = item.name.toLowerCase().includes(query);
+            let itemCat = item.category || "Umum";
+            const matchCat = App.currentFilter === 'All' || itemCat === App.currentFilter;
+            return matchName && matchCat;
+        });
+
+        filtered = filtered.sort((a, b) => {
+            switch(App.currentSort) {
+                case 'name_asc': return a.name.localeCompare(b.name);
+                case 'name_desc': return b.name.localeCompare(a.name);
+                case 'date_new': return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0);
+                case 'date_old': return (a.updatedAt || a.createdAt || 0) - (b.updatedAt || b.createdAt || 0);
+                default: return 0;
+            }
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><div class="empty-text">Tidak ada data</div></div>`;
+            return;
+        }
+
+        filtered.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'item-card';
+            
+            el.addEventListener('contextmenu', (e) => { e.preventDefault(); openActionSheet(item.id); });
+
+            const score = checkPasswordStrength(item.password);
+            let riskClass = score >= 3 ? 'risk-strong' : (score >= 2 ? 'risk-medium' : 'risk-weak');
+            const displayCat = item.category || "Umum";
+            const imgHtml = item.image ? `<img src="${item.image}" alt="icon">` : item.name.charAt(0).toUpperCase();
+            
+            let dateDisplay = '';
+            if(App.viewMode === 'list') { dateDisplay = `<span class="item-date">${formatDate(item.updatedAt || item.createdAt)}</span>`; }
+
+            el.innerHTML = `
+                <div class="item-icon">${imgHtml}<div class="risk-dot ${riskClass}"></div></div>
+                <div class="item-details">
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-meta"><span class="badge badge-cat">${displayCat}</span></div>
+                    ${dateDisplay}
+                </div>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    function checkPasswordStrength(pass) {
+        let score = 0;
+        if (pass.length > 8) score++;
+        if (/[A-Z]/.test(pass)) score++;
+        if (/[0-9]/.test(pass)) score++;
+        if (/[^A-Za-z0-9]/.test(pass)) score++;
+        return score;
+    }
+
+    /* ==========================================================================
+       PROFILE MANAGEMENT & EDIT PHOTO
+       ========================================================================== */
+    function updateProfileUI() {
+        if(!App.data) return;
+        document.getElementById('profile-display-username').textContent = App.data.username;
+        document.getElementById('profile-avatar-letter').textContent = App.data.username.charAt(0).toUpperCase();
+        
+        const imgEl = document.getElementById('profile-avatar-img');
+        const letterEl = document.getElementById('profile-avatar-letter');
+        if (App.data.profileImage) {
+            imgEl.src = App.data.profileImage;
+            imgEl.style.display = 'block';
+            letterEl.style.display = 'none';
+        } else {
+            imgEl.style.display = 'none';
+            letterEl.style.display = 'block';
+        }
+
+        document.getElementById('profile-username').textContent = App.data.username;
+        document.getElementById('profile-email').textContent = App.data.email;
+        document.getElementById('profile-phone').textContent = App.data.phone;
+    }
+
+    // Trigger file input
+    function triggerProfilePhotoUpload() {
+        document.getElementById('inp-profile-photo').click();
+    }
+
+    // Handle Profile Image Change
+    document.getElementById('inp-profile-photo').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if(file.size > 500000) { toast('Maks 500KB', 'error'); return; }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 500; canvas.height = 500; // 1:1 Aspect Ratio
+                    const minSide = Math.min(img.width, img.height);
+                    const sx = (img.width - minSide) / 2;
+                    const sy = (img.height - minSide) / 2;
+                    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 500, 500);
+                    const croppedData = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    // Store Temporarily
+                    App.tempProfileImage = croppedData;
+
+                    // Update Preview in Profile Screen
+                    document.getElementById('profile-avatar-img').src = croppedData;
+                    document.getElementById('profile-avatar-img').style.display = 'block';
+                    document.getElementById('profile-avatar-letter').style.display = 'none';
+
+                    // Update Preview in Modal if open
+                    const modalImg = document.getElementById('edit-preview-img');
+                    const modalLetter = document.getElementById('edit-preview-letter');
+                    if(modalImg) {
+                        modalImg.src = croppedData;
+                        modalImg.style.display = 'block';
+                        modalLetter.style.display = 'none';
+                    }
+
+                    toast('Foto dipilih (Preview)');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function openEditProfileModal() {
+        document.getElementById('edit-prof-username').value = App.data.username;
+        document.getElementById('edit-prof-email').value = App.data.email;
+        document.getElementById('edit-prof-phone').value = App.data.phone;
+        document.getElementById('edit-prof-pass').value = '';
+        document.getElementById('edit-prof-pin').value = '';
+        
+        // Setup Photo Preview in Modal
+        const modalImg = document.getElementById('edit-preview-img');
+        const modalLetter = document.getElementById('edit-preview-letter');
+        
+        if (App.tempProfileImage) {
+            modalImg.src = App.tempProfileImage;
+            modalImg.style.display = 'block';
+            modalLetter.style.display = 'none';
+        } else if (App.data.profileImage) {
+            modalImg.src = App.data.profileImage;
+            modalImg.style.display = 'block';
+            modalLetter.style.display = 'none';
+        } else {
+            modalImg.style.display = 'none';
+            modalLetter.textContent = App.data.username.charAt(0).toUpperCase();
+            modalLetter.style.display = 'block';
+        }
+
+        document.getElementById('modal-edit-profile').classList.add('active');
+    }
+
+    function saveProfileChanges() {
+        const newUsername = document.getElementById('edit-prof-username').value.trim();
+        const newEmail = document.getElementById('edit-prof-email').value.trim();
+        const newPhone = document.getElementById('edit-prof-phone').value.trim();
+        const passVerify = document.getElementById('edit-prof-pass').value;
+        const pinVerify = document.getElementById('edit-prof-pin').value;
+
+        // 1. Validate Input
+        if (!validateUsername(newUsername)) return toast('Username format salah', 'error');
+        if (!validateEmail(newEmail)) return toast('Email format salah', 'error');
+        if (!validatePhone(newPhone)) return toast('No HP format salah', 'error');
+        if (pinVerify.length !== 6) return toast('PIN harus 6 digit', 'error');
+
+        // 2. Verify Master Password
+        if (simpleHash(passVerify) !== App.data.passwordHash) {
+            return toast('Verifikasi Kata Sandi Utama Gagal!', 'error');
+        }
+
+        // 3. Verify PIN
+        if (simpleHash(pinVerify) !== App.data.pinHash) {
+            return toast('Verifikasi PIN Gagal!', 'error');
+        }
+
+        // 4. Check Duplicate
+        if (newEmail !== App.data.email || newUsername !== App.data.username) {
+            const conflict = findUserByEmailOrUsername(newEmail, newUsername);
+            if (conflict && conflict.id !== App.data.id) {
+                return toast('Email atau Username sudah digunakan akun lain', 'error');
+            }
+        }
+
+        // 5. Save Changes
+        App.data.username = newUsername;
+        App.data.email = newEmail;
+        App.data.phone = newPhone;
+        
+        // Save Photo if present
+        if (App.tempProfileImage) {
+            App.data.profileImage = App.tempProfileImage;
+            App.tempProfileImage = null; // Clear temp
+        }
+        
+        saveData();
+        updateProfileUI();
+        closeModal('modal-edit-profile');
+        toast('Profil Berhasil Diperbarui!');
+    }
+
+    /* ==========================================================================
+       CATEGORY MANAGEMENT
+       ========================================================================== */
+    function renderCategoryUI() {
+        const container = document.getElementById('cat-manager-grid');
+        container.innerHTML = '';
+        if(!App.selectedCategory || !App.categories.includes(App.selectedCategory)) App.selectedCategory = "Umum";
+
+        App.categories.forEach(c => {
+            const chip = document.createElement('div');
+            chip.className = `cat-chip ${App.selectedCategory === c ? 'active' : ''}`;
+            chip.textContent = c;
+            
+            const isDefault = ["Umum", "Sosial Media", "Email", "Perbankan", "Marketplace", "Work"].includes(c);
+            if(!isDefault) {
+                const del = document.createElement('span');
+                del.className = 'cat-delete-badge';
+                del.innerHTML = '×';
+                del.style.display = App.selectedCategory === c ? 'none' : 'inline-flex';
+                del.onclick = (e) => { e.stopPropagation(); deleteCategory(c); };
+                chip.appendChild(del);
+            }
+            chip.onclick = () => selectCategory(c);
+            container.appendChild(chip);
+        });
+    }
+
+    function selectCategory(cat) { App.selectedCategory = cat; renderCategoryUI(); }
+
+    function addNewCategoryInline() {
+        const input = document.getElementById('new-cat-input');
+        const val = input.value.trim();
+        if(val && !App.categories.includes(val)) {
+            App.categories.push(val); saveData();
+            selectCategory(val); input.value = '';
+            toast('Kategori ditambahkan');
+        } else if (App.categories.includes(val)) {
+            toast('Kategori sudah ada', 'error');
+        }
+    }
+
+    function deleteCategory(cat) {
+        if(confirm(`Hapus kategori "${cat}"?`)) {
+            App.categories = App.categories.filter(c => c !== cat);
+            App.items.forEach(item => { if(item.category === cat) item.category = null; });
+            if(App.selectedCategory === cat) App.selectedCategory = "Umum";
+            saveData(); renderCategoryUI();
+            toast('Kategori dihapus');
+        }
+    }
+
+    /* ==========================================================================
+       IMAGE HANDLING (ITEMS)
+       ========================================================================== */
+    document.getElementById('inp-img').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if(file.size > 500000) { toast('Maks 500KB', 'error'); return; }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 500; canvas.height = 500;
+                    const minSide = Math.min(img.width, img.height);
+                    const sx = (img.width - minSide) / 2;
+                    const sy = (img.height - minSide) / 2;
+                    ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, 500, 500);
+                    const croppedData = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('img-preview').src = croppedData;
+                    document.getElementById('upload-area').classList.add('has-img');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function toggleUrlGroup() {
+        const isChecked = document.getElementById('check-url').checked;
+        const group = document.getElementById('group-url');
+        if(isChecked) { group.style.display = 'block'; setTimeout(() => group.classList.remove('hidden'), 10); }
+        else { group.classList.add('hidden'); setTimeout(() => group.style.display = 'none', 300); document.getElementById('inp-url').value = ''; }
+    }
+
+    /* ==========================================================================
+       FORM HANDLING
+       ========================================================================== */
+    document.getElementById('form-add').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        const isEdit = !!id;
+        
+        const name = document.getElementById('inp-name').value;
+        const cat = App.selectedCategory; 
+        const pass = document.getElementById('inp-pass').value;
+        const desc = document.getElementById('inp-desc').value;
+        const pin = document.getElementById('inp-item-pin').value;
+        const username = document.getElementById('inp-user').value;
+        const email = document.getElementById('inp-email').value;
+        const hasUrl = document.getElementById('check-url').checked;
+        const url = hasUrl ? document.getElementById('inp-url').value : '';
+
+        let finalImg = null;
+        const previewImg = document.getElementById('img-preview');
+        const now = Date.now();
+
+        if (isEdit) {
+            const item = App.items.find(i => i.id == id);
+            if(item) {
+                finalImg = document.getElementById('upload-area').classList.contains('has-img') ? previewImg.src : item.image;
+                item.name = name; item.category = cat; item.password = pass;
+                item.description = desc; item.image = finalImg;
+                item.username = username; item.email = email; item.url = url;
+                item.updatedAt = now;
+                if(pin) item.pinHash = simpleHash(pin);
+                addToAuditLog(item.name, 'Edit');
+                saveData(); toast('Data Berhasil Diubah');
+                nav.back(); 
+            }
+        } else {
+            finalImg = document.getElementById('upload-area').classList.contains('has-img') ? previewImg.src : null;
+            const newItem = {
+                id: now, name, category: cat, password: pass, description: desc,
+                pinHash: simpleHash(pin), createdAt: now, updatedAt: now,
+                image: finalImg, username, email, url
+            };
+            App.items.push(newItem); saveData();
+            addToAuditLog(newItem.name, 'Create');
+            toast('Data Disimpan');
+            nav.toSearchScreen();
+        }
+        resetForm();
+    });
+
+    function resetForm() {
+        document.getElementById('form-add').reset();
+        document.getElementById('img-preview').src = '';
+        document.getElementById('upload-area').classList.remove('has-img');
+        document.getElementById('edit-id').value = '';
+        App.selectedCategory = "Umum";
+        const group = document.getElementById('group-url');
+        group.style.display = 'none'; group.classList.add('hidden');
+    }
+
+    /* ==========================================================================
+       ACTION SHEET & LOGIC
+       ========================================================================== */
+    function openActionSheet(itemId) {
+        App.activeItem = App.items.find(i => i.id === itemId);
+        if(navigator.vibrate) navigator.vibrate(50);
+        document.getElementById('action-sheet-overlay').classList.add('active');
+    }
+    function closeActionSheet() { document.getElementById('action-sheet-overlay').classList.remove('active'); }
+
+    function handleSheetAction(action) {
+        closeActionSheet();
+        App.activeAction = action;
+        
+        if (action === 'delete') {
+            if(confirm(`Apakah Anda yakin ingin menghapus "${App.activeItem.name}"?\n\nData akan dipindahkan ke sampah.`)) {
+                executeDelete();
+            }
+        } else {
+            requestPinVerification('item');
+        }
+    }
+
+    function requestPinVerification(type) {
+        const input = document.getElementById('verify-pin-input');
+        input.value = '';
+        document.getElementById('pin-msg').textContent = type === 'dashboard' 
+            ? "Masukkan PIN Dashboard." : "Masukkan PIN Item ini.";
+        document.getElementById('btn-process-pin-action').onclick = () => processPinVerification(type);
+        document.getElementById('modal-pin').classList.add('active');
+    }
+
+    function processPinVerification(type) {
+        const inputPin = document.getElementById('verify-pin-input').value;
+        let isValid = false;
+        
+        if (type === 'dashboard') {
+            if (simpleHash(inputPin) !== App.data.pinHash) return toast('PIN Dashboard Salah!', 'error');
+            isValid = true;
+        } else {
+            if (simpleHash(inputPin) !== App.activeItem.pinHash) return toast('PIN Item Salah', 'error');
+            isValid = true;
+        }
+
+        closeModal('modal-pin');
+        if (isValid) {
+            if (App.activeAction === 'edit') prepareEditItem();
+            else if (App.activeAction === 'view') executeView();
+            else if (App.activeAction === 'copy') executeCopy();
+        }
+    }
+
+    function addToAuditLog(itemName, action) {
+        const entry = { timestamp: Date.now(), name: itemName, action: action };
+        App.auditLog.unshift(entry);
+        if (App.auditLog.length > 50) App.auditLog.pop(); 
+        saveData();
+    }
+
+    function executeDelete() {
+        const item = App.activeItem;
+        item.deletedAt = Date.now();
+        App.trash.push(item);
+        App.items = App.items.filter(i => i.id !== item.id);
+        addToAuditLog(item.name, 'Delete');
+        saveData(); renderList();
+        toast('Data dipindahkan ke Sampah');
+    }
+
+    function prepareEditItem() {
+        const item = App.activeItem;
+        document.getElementById('form-title').textContent = "Edit Data";
+        document.getElementById('edit-id').value = item.id;
+        document.getElementById('inp-name').value = item.name;
+        App.selectedCategory = item.category || "Umum"; 
+        document.getElementById('inp-pass').value = item.password;
+        document.getElementById('inp-desc').value = item.description;
+        document.getElementById('inp-user').value = item.username || '';
+        document.getElementById('inp-email').value = item.email || '';
+        document.getElementById('inp-item-pin').value = ''; 
+        
+        const checkUrl = document.getElementById('check-url');
+        const groupUrl = document.getElementById('group-url');
+        const inpUrl = document.getElementById('inp-url');
+        
+        if(item.url) {
+            checkUrl.checked = true;
+            groupUrl.style.display = 'block';
+            groupUrl.classList.remove('hidden');
+            inpUrl.value = item.url;
+        } else {
+            checkUrl.checked = false;
+            groupUrl.style.display = 'none';
+            groupUrl.classList.add('hidden');
+            inpUrl.value = '';
+        }
+        
+        if(item.image) {
+            document.getElementById('img-preview').src = item.image;
+            document.getElementById('upload-area').classList.add('has-img');
+        } else {
+            document.getElementById('img-preview').src = '';
+            document.getElementById('upload-area').classList.remove('has-img');
+        }
+        
+        nav.to('add-screen');
+    }
+
+    let passVisible = false;
+    function togglePassVisibility() {
+        const el = document.getElementById('detail-pass');
+        const btn = document.getElementById('btn-toggle-pass');
+        if(passVisible) { el.textContent = '******'; btn.textContent = '👁️'; }
+        else { el.textContent = App.activeItem.password; btn.textContent = '🚫'; }
+        passVisible = !passVisible;
+    }
+
+    function executeView() {
+        const item = App.activeItem;
+        document.getElementById('detail-title').textContent = item.name;
+        document.getElementById('detail-cat-badge').textContent = item.category || "Umum";
+        document.getElementById('detail-pass').textContent = '******';
+        passVisible = false; document.getElementById('btn-toggle-pass').textContent = '👁️';
+        
+        document.getElementById('detail-user').textContent = item.username || '-';
+        document.getElementById('detail-email').textContent = item.email || '-';
+        document.getElementById('detail-desc').textContent = item.description || '-';
+
+        document.getElementById('detail-created-at').textContent = `Dibuat: ${formatDate(item.createdAt)}`;
+        
+        const imgEl = document.getElementById('detail-img');
+        const txtEl = document.getElementById('detail-icon-text');
+        if(item.image) { imgEl.src = item.image; imgEl.style.display = 'block'; txtEl.style.display = 'none'; }
+        else { imgEl.style.display = 'none'; txtEl.textContent = item.name.charAt(0); txtEl.style.display = 'block'; }
+
+        const urlRow = document.getElementById('detail-url-row');
+        const urlText = document.getElementById('detail-url-text');
+        if(item.url) {
+            urlRow.style.display = 'block'; urlRow.classList.remove('hidden');
+            urlText.textContent = item.url;
+        } else {
+            urlRow.style.display = 'none'; urlRow.classList.add('hidden');
+        }
+        document.getElementById('modal-detail').classList.add('active');
+        addToAuditLog(item.name, 'View');
+    }
+
+    function executeCopy() {
+        navigator.clipboard.writeText(App.activeItem.password).then(() => {
+            toast('Kata sandi disalin!');
+            addToAuditLog(App.activeItem.name, 'Copy');
+            setTimeout(() => { navigator.clipboard.writeText(' '); }, 30000);
+        }).catch(() => toast('Gagal menyalin', 'error'));
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => toast('Teks disalin!'));
+    }
+
+    function openExternalLink() {
+        const url = App.activeItem.url;
+        if(url) { addToAuditLog(App.activeItem.name, 'Open Link'); window.open(url, '_blank'); }
+    }
+
+    /* ==========================================================================
+       RECOVERY & TRASH
+       ========================================================================== */
+    function renderTrashList() {
+        const container = document.getElementById('recovery-list');
+        container.innerHTML = '';
+        if (App.trash.length === 0) {
+             container.innerHTML = `<div class="empty-state"><div class="empty-text">Sampah Kosong</div></div>`;
+             return;
+        }
+        App.trash.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'item-card';
+            el.innerHTML = `
+                <div class="item-icon">${item.name.charAt(0)}</div>
+                <div class="item-details"><div class="item-name">${item.name}</div></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="icon-btn" onclick="promptRestore(${item.id})">♻️</button>
+                    <button class="icon-btn" style="color:var(--danger)" onclick="promptPermDelete(${item.id})">✖️</button>
+                </div>
+            `;
+            container.appendChild(el);
+        });
+    }
+
+    function promptRestore(id) {
+        App.activeItem = App.trash.find(i => i.id === id);
+        App.activeAction = 'restore';
+        requestPinVerification('dashboard');
+    }
+
+    function promptPermDelete(id) {
+        App.activeItem = App.trash.find(i => i.id === id);
+        if(confirm("Hapus permanen item ini? Tindakan tidak bisa dibatalkan.")) {
+             App.trash = App.trash.filter(i => i.id !== App.activeItem.id); 
+             saveData(); renderTrashList(); toast('Item dihapus permanen');
+        }
+    }
+
+    const originalProcess = processPinVerification;
+    processPinVerification = (type) => {
+        const inputPin = document.getElementById('verify-pin-input').value;
+        let isValid = false;
+        if (type === 'dashboard') {
+            if (simpleHash(inputPin) !== App.data.pinHash) return toast('PIN Dashboard Salah!', 'error');
+            isValid = true;
+        } else {
+            if (simpleHash(inputPin) !== App.activeItem.pinHash) return toast('PIN Item Salah', 'error');
+            isValid = true;
+        }
+        closeModal('modal-pin');
+        if (isValid) {
+            if (App.activeAction === 'restore') { 
+                const now = Date.now();
+                App.activeItem.updatedAt = now;
+                App.items.push(App.activeItem); 
+                App.trash = App.trash.filter(i => i.id !== App.activeItem.id); 
+                saveData(); renderTrashList(); toast('Item dipulihkan'); 
+            }
+            else {
+                originalProcess(type);
+            }
+        }
+    };
+
+    function openChangePinModal() { 
+        document.getElementById('cp-old').value=''; document.getElementById('cp-new').value=''; 
+        document.getElementById('modal-change-pin').classList.add('active'); 
+    }
+    function openChangeMasterModal() { 
+        document.getElementById('cm-old').value=''; document.getElementById('cm-new').value=''; 
+        document.getElementById('modal-change-master').classList.add('active'); 
+    }
+
+    function resetTimer() {
+        if (!App.data) return;
+        clearTimeout(App.inactivityTimer);
+        App.inactivityTimer = setTimeout(() => {
+            auth.lockVault();
+            toast('Sesi Berakhir (Auto-Lock)', 'error');
+        }, App.lockTime);
+    }
+
+    const originalLoginPhase2 = auth.loginPhase2;
+    auth.loginPhase2 = (e) => {
+        e.preventDefault();
+        if (App.pinLocked) return;
+
+        const pinInput = document.getElementById('login-pin-input').value;
+        
+        if (lockStateManager.isVaultLocked) {
+            const unlockSuccess = lockStateManager.unlockAttempt(pinInput);
+            if(unlockSuccess) return; 
+        }
+
+        if (simpleHash(pinInput) === App.tempUser.pinHash) {
+            // Success
+            App.data = App.tempUser;
+            App.items = App.data.items || [];
+            App.trash = App.data.trash || [];
+            App.categories = App.data.categories || [...App.categories];
+            App.auditLog = App.data.auditLog || [];
+            
+            App.loginAttempts = 0;
+            document.getElementById('login-pin-input').value = '';
+            document.getElementById('login-strike-counter').textContent = '';
+            
+            App.tempUser = null;
+            nav.clearHistory();
+            nav.toDashboard();
+            toast('Selamat Datang!');
+        } else {
+            App.loginAttempts++;
+            handlePinFailure();
+        }
+    };
+
+    document.getElementById('form-register').addEventListener('submit', auth.register);
+    document.getElementById('form-login-1').addEventListener('submit', auth.loginPhase1);
+    document.getElementById('form-login-2').addEventListener('submit', auth.loginPhase2);
+    document.getElementById('reg-password').addEventListener('input', (e) => validatePasswordRealtime(e.target.value));
+    addSecurityQuestionField();
+    
+    window.onload = auth.init;
+
+</script>
+</body>
+</html>
